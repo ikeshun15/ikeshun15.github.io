@@ -162,7 +162,7 @@
 		font-weight: 300;
 		line-height: 2;
 		letter-spacing: 0.1em;
-		text-transform: uppercase;
+		text-transform: none;
 	}
 
 		@media screen and (max-width: 1680px) {
@@ -227,7 +227,7 @@
 
 	h1 {
 		font-size: 1.85em;
-		letter-spacing: 0.22em;
+		letter-spacing: 0.2em;
 		margin: 0 0 0.525em 0;
 	}
 
