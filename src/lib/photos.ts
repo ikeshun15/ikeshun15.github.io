@@ -301,3 +301,36 @@ async function makeMosaic(photo: Photo, target: number) {
   }
   return { slug: photo.slug, ar: photo.ar, cols, rows, cells };
 }
+
+let dotColors: Promise<string> | null = null;
+
+/**
+ * ドット（読み込み中の粒・プロフィールの背景）の色。登録してあるすべての写真から選ぶ。
+ * 写真ごとに、鮮やかな色から少し落ち着いた色までを同じ数ずつとり、写真ごとに順番に並べる
+ * （前から何色とっても、すべての写真の色が混ざるように）。"rrggbb" をつなげた文字列で返す。
+ */
+export function getDotColors(count = 160) {
+  dotColors ??= (async () => {
+    const photos = await getPhotos();
+    if (!photos.length) return '';
+    const per = Math.ceil(count / photos.length);
+    const lists = await Promise.all(
+      photos.map(async (p) => {
+        const { cells } = await getMosaic(p, 160);
+        const ranked = cells
+          .map((c) => (c.color.match(/\d+/g) ?? ['136', '136', '136']).slice(0, 3).map(Number))
+          .map((c) => ({ c, chroma: Math.max(...c) - Math.min(...c) }))
+          .sort((a, b) => b.chroma - a.chroma);
+        // 鮮やかな方から 6 割の中で、等間隔に選ぶ（同じ色ばかりにならないように）
+        const pool = ranked.slice(0, Math.max(per, Math.ceil(ranked.length * 0.6)));
+        return Array.from({ length: per }, (_, i) => pool[Math.floor((i * pool.length) / per)].c);
+      }),
+    );
+    const out: string[] = [];
+    for (let i = 0; i < per; i++) {
+      for (const list of lists) out.push(list[i].map((n) => n.toString(16).padStart(2, '0')).join(''));
+    }
+    return out.slice(0, count).join('');
+  })();
+  return dotColors;
+}

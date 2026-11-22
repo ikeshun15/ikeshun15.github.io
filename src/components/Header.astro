@@ -32,6 +32,8 @@ const items = [
 ];
 ---
 
+<!-- ヘッダーのすりガラス（メニューを開くと、この面がボタンの位置から画面いっぱいに広がる） -->
+<div class="header-frost" aria-hidden="true"></div>
 <header class="site-header" data-site-header data-palette={JSON.stringify(palette)}>
   <div class="site-header__left">
     <a class="lang-switch" href={localePath(other, path)} hreflang={other} lang={other} aria-label={t('lang.label')}>
@@ -133,8 +135,8 @@ const items = [
     if (!menu || !button) return;
     // ボタンの位置から円が広がる
     const r = button.getBoundingClientRect();
-    menu.style.setProperty('--mx', `${r.left + r.width / 2}px`);
-    menu.style.setProperty('--my', `${r.top + r.height / 2}px`);
+    root.style.setProperty('--mx', `${r.left + r.width / 2}px`);
+    root.style.setProperty('--my', `${r.top + r.height / 2}px`);
     root.classList.add('menu-open');
     menu.inert = false;
     behind().forEach((el) => (el.inert = true));

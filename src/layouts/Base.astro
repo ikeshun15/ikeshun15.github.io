@@ -11,7 +11,7 @@ import '../styles/global.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import { site } from '../data/site';
-import { getFeaturedPhotos, getMosaic, type Photo } from '../lib/photos';
+import { getDotColors } from '../lib/photos';
 import { localePath, locales, useTranslations, type Locale } from '../i18n/ui';
 
 interface Props {
@@ -24,11 +24,9 @@ interface Props {
   image?: string;
   /** 404 など、言語切り替えの対象にしないページ */
   noAlternates?: boolean;
-  /** 読み込み中のドットの色をとる写真（省略時はトップの最初の写真） */
-  intro?: Photo[];
 }
 
-const { lang, path, title, description, image = '/og.png', noAlternates = false, intro } = Astro.props;
+const { lang, path, title, description, image = '/og.png', noAlternates = false } = Astro.props;
 const t = useTranslations(lang);
 const pageTitle = title ? `${title} — ${site.name}` : site.name;
 const desc = description ?? t('meta.description');
@@ -36,18 +34,8 @@ const canonical = new URL(localePath(lang, path), site.url).href;
 const ogImage = new URL(image, site.url).href;
 const gaId = site.gaMeasurementId;
 
-// 読み込み中のドットの仮の色：写真（ふだんはトップの最初の 3 枚）を細かく区切った色を、鮮やかな順に 240 色。
-// 写真が読み込めたら、ドットはそれぞれ写真の本当の色に変わってから集まる（src/lib/field.ts）
-const introPhotos = intro ?? (await getFeaturedPhotos(3));
-const mosaics = await Promise.all(introPhotos.map((p) => getMosaic(p, Math.ceil(480 / Math.max(1, introPhotos.length)))));
-const rgbOf = (c: string) => (c.match(/\d+/g) ?? ['136', '136', '136']).slice(0, 3).map(Number);
-const dots = mosaics
-  .flatMap((m) => m.cells.map((c) => rgbOf(c.color)))
-  .map((c) => ({ c, chroma: Math.max(...c) - Math.min(...c) }))
-  .sort((x, y) => y.chroma - x.chroma)
-  .slice(0, 240)
-  .map(({ c }) => c.map((n) => n.toString(16).padStart(2, '0')).join(''))
-  .join('');
+// ドットの色：登録してあるすべての写真から選んだ色（src/lib/field.ts が使う）
+const dots = await getDotColors(45);
 ---
 
 <!doctype html>

@@ -29,7 +29,7 @@ const meta = [photo.date, exifLine(photo.exif)].filter(Boolean).join(' · ');
 const og = await getImage({ src: photo.image, width: 1200, format: 'jpg', quality: 80 });
 ---
 
-<Base lang={lang} path={`/photos/${photo.slug}/`} title={title || t('photos.title')} image={og.src} intro={[photo]}>
+<Base lang={lang} path={`/photos/${photo.slug}/`} title={title || t('photos.title')} image={og.src}>
   <article
     class="viewer"
     data-viewer
