@@ -1,0 +1,101 @@
+---
+import '@fontsource-variable/geist';
+import '@fontsource-variable/geist-mono';
+import '@fontsource-variable/noto-sans-jp';
+import '../styles/global.css';
+
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { site } from '../data/site';
+import { localePath, locales, useTranslations, type Locale } from '../i18n/ui';
+
+interface Props {
+  lang: Locale;
+  /** 言語プレフィックスを除いたパス（例: "/photos/"） */
+  path: string;
+  title?: string;
+  description?: string;
+  /** OGP 画像の絶対 URL かルート相対パス */
+  image?: string;
+  /** 404 など、言語切り替えの対象にしないページ */
+  noAlternates?: boolean;
+}
+
+const { lang, path, title, description, image = '/og.png', noAlternates = false } = Astro.props;
+const t = useTranslations(lang);
+const pageTitle = title ? `${title} — ${site.name}` : site.name;
+const desc = description ?? t('meta.description');
+const canonical = new URL(localePath(lang, path), site.url).href;
+const ogImage = new URL(image, site.url).href;
+const gaId = site.gaMeasurementId;
+---
+
+<!doctype html>
+<html lang={lang} id="top">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={desc} />
+    <link rel="canonical" href={canonical} />
+    {
+      !noAlternates &&
+        locales.map((l) => <link rel="alternate" hreflang={l} href={new URL(localePath(l, path), site.url).href} />)
+    }
+    {!noAlternates && <link rel="alternate" hreflang="x-default" href={new URL(localePath('ja', path), site.url).href} />}
+
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="theme-color" content="#f3f3f1" />
+    <meta name="color-scheme" content="light dark" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={desc} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:locale" content={lang === 'ja' ? 'ja_JP' : 'en_US'} />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <script is:inline>
+      // 描画前にテーマを確定してちらつきを防ぐ
+      (function () {
+        var stored = null;
+        try {
+          stored = localStorage.getItem('theme');
+        } catch (e) {}
+        var theme = stored || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        document.documentElement.dataset.theme = theme;
+        document
+          .querySelector('meta[name="theme-color"]')
+          .setAttribute('content', theme === 'dark' ? '#0b0b0b' : '#f3f3f1');
+      })();
+    </script>
+
+    {
+      gaId && (
+        <>
+          <script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`} />
+          <script is:inline define:vars={{ gaId }}>
+            window.dataLayer = window.dataLayer || [];
+            function gtag() {
+              dataLayer.push(arguments);
+            }
+            gtag('js', new Date());
+            gtag('config', gaId);
+          </script>
+        </>
+      )
+    }
+  </head>
+  <body>
+    <a class="skip-link" href="#main">{t('skip')}</a>
+    <Header lang={lang} path={path} />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer lang={lang} />
+  </body>
+</html>

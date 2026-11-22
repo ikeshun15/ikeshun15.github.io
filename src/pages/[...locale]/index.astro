@@ -1,0 +1,66 @@
+---
+import Base from '../../layouts/Base.astro';
+import DotMatrix from '../../components/DotMatrix.astro';
+import SectionHead from '../../components/SectionHead.astro';
+import PhotoGrid from '../../components/PhotoGrid.astro';
+import { links } from '../../data/site';
+import { getFeaturedPhotos } from '../../lib/photos';
+import { localePath, localeStaticPaths, useTranslations, type Locale } from '../../i18n/ui';
+
+export const getStaticPaths = localeStaticPaths;
+
+const { lang } = Astro.props as { lang: Locale };
+const t = useTranslations(lang);
+const featured = await getFeaturedPhotos(8);
+---
+
+<Base lang={lang} path="/">
+  <section class="hero" data-dm-scope aria-labelledby="hero-title">
+    <div class="hero__stage">
+      <DotMatrix text="SHUN15" portraitLines={['SHUN', '15']} accentFrom={4} />
+      <div class="hero__frame vf-corners" aria-hidden="true"></div>
+    </div>
+
+    <h1 id="hero-title" class="visually-hidden">Shun15</h1>
+
+    <div class="hero__bottom">
+      <p class="hero__lead">
+        <span>{t('hero.role')}</span>
+        <span>{t('hero.lead')}</span>
+      </p>
+      <dl class="hero__hud mono" aria-hidden="true">
+        <dt>X</dt><dd data-hud-x>—</dd>
+        <dt>Y</dt><dd data-hud-y>—</dd>
+      </dl>
+    </div>
+
+    <a class="hero__scroll mono" href="#photos">{t('hero.scroll')}</a>
+  </section>
+
+  <section class="section" id="photos" aria-labelledby="photos-title">
+    <SectionHead
+      id="photos-title"
+      label="01 / Photos"
+      title={t('section.photos')}
+      more={{ href: localePath(lang, '/photos/'), label: t('photos.all') }}
+    />
+    <PhotoGrid photos={featured} lang={lang} />
+  </section>
+
+  <section class="section" id="elsewhere" aria-labelledby="links-title">
+    <SectionHead id="links-title" label="02 / Elsewhere" title={t('section.links')} />
+    <ul class="rows reveal">
+      {
+        links.map((l) => (
+          <li>
+            <a class="row" href={l.href} target="_blank" rel="me noopener">
+              <span class="row__main">{l.label}</span>
+              <span class="row__sub row__sub--handle mono">{l.handle}</span>
+              <span class="row__arrow" aria-hidden="true">↗</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+</Base>

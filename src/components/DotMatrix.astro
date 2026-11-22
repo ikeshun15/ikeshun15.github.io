@@ -1,0 +1,39 @@
+---
+interface Props {
+  /** 表示する文字（対応: S H U N 0 1 4 5） */
+  text: string;
+  /** 縦長画面での改行パターン（例: ["SHUN", "15"]） */
+  portraitLines?: string[];
+  /** この文字番号以降をアクセント色にする */
+  accentFrom?: number;
+  class?: string;
+}
+const { text, portraitLines, accentFrom = -1, class: cls } = Astro.props;
+---
+
+<div
+  class:list={['dotmatrix', cls]}
+  data-dotmatrix
+  data-text={text}
+  data-portrait={portraitLines ? JSON.stringify(portraitLines) : undefined}
+  data-accent-from={accentFrom}
+>
+  <canvas aria-hidden="true"></canvas>
+</div>
+
+<script>
+  import { mountDotMatrix } from '../lib/dotmatrix';
+  document.querySelectorAll<HTMLElement>('[data-dotmatrix]').forEach(mountDotMatrix);
+</script>
+
+<style>
+  .dotmatrix {
+    position: absolute;
+    inset: 0;
+  }
+  canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+</style>

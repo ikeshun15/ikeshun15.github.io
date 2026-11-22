@@ -1,0 +1,49 @@
+---
+import Base from '../../layouts/Base.astro';
+import SectionHead from '../../components/SectionHead.astro';
+import { gear } from '../../data/site';
+import { localeStaticPaths, useTranslations, type Locale } from '../../i18n/ui';
+
+export const getStaticPaths = localeStaticPaths;
+
+const { lang } = Astro.props as { lang: Locale };
+const t = useTranslations(lang);
+const hasSponsored = gear.some((g) => g.sponsored);
+---
+
+<Base lang={lang} path="/gear/" title={t('gear.title')} description={t('gear.lead')}>
+  <div class="page">
+    <SectionHead as="h1" label={`Gear — ${String(gear.length).padStart(3, '0')}`} title={t('gear.title')}>
+      <p class="section-head__note">{t('gear.lead')}</p>
+    </SectionHead>
+
+    <ul class="rows reveal">
+      {
+        gear.map((g) => {
+          const Tag = g.href ? 'a' : 'div';
+          return (
+            <li>
+              <Tag
+                class="row row--gear"
+                href={g.href}
+                target={g.href ? '_blank' : undefined}
+                rel={g.href ? (g.sponsored ? 'sponsored noopener' : 'noopener') : undefined}
+              >
+                <span class="row__cat mono">{g.category[lang]}</span>
+                <span class="row__main">{g.name}</span>
+                {g.model && <span class="row__sub mono">{g.model}</span>}
+                {g.href && (
+                  <span class="row__arrow" aria-hidden="true">
+                    ↗
+                  </span>
+                )}
+              </Tag>
+            </li>
+          );
+        })
+      }
+    </ul>
+
+    {hasSponsored && <p class="disclosure">{t('gear.disclosure')}</p>}
+  </div>
+</Base>

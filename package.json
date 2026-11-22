@@ -1,0 +1,35 @@
+{
+  "name": "ikeshun15.github.io",
+  "type": "module",
+  "private": true,
+  "packageManager": "pnpm@10.14.0",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build && node scripts/check-exif.mjs",
+    "preview": "astro preview",
+    "check": "astro check",
+    "icons": "node scripts/make-icons.mjs"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "sharp"
+    ]
+  },
+  "dependencies": {
+    "@fontsource-variable/geist": "5.3.0",
+    "@fontsource-variable/geist-mono": "5.3.0",
+    "@fontsource-variable/noto-sans-jp": "5.3.1",
+    "astro": "6.4.8",
+    "exifr": "7.1.3",
+    "sharp": "^0.34.5"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.12",
+    "@types/node": "22.20.5",
+    "typescript": "5.9.3"
+  }
+}

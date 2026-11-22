@@ -1,0 +1,24 @@
+---
+interface Props {
+  /** 左上の小さなラベル（例: "01 / PHOTOS"） */
+  label: string;
+  title: string;
+  as?: 'h1' | 'h2';
+  more?: { href: string; label: string };
+  id?: string;
+}
+const { label, title, as: Tag = 'h2', more, id } = Astro.props;
+---
+
+<header class="section-head reveal">
+  <span class="section-head__label mono">{label}</span>
+  <Tag class="section-head__title" id={id}>{title}</Tag>
+  {
+    more && (
+      <a class="section-head__more mono" href={more.href}>
+        {more.label} <span aria-hidden="true">→</span>
+      </a>
+    )
+  }
+  <slot />
+</header>

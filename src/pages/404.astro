@@ -1,0 +1,15 @@
+---
+import Base from '../layouts/Base.astro';
+import DotMatrix from '../components/DotMatrix.astro';
+import { ui } from '../i18n/ui';
+---
+
+<Base lang="ja" path="/404/" title="404" noAlternates>
+  <section class="notfound" data-dm-scope>
+    <DotMatrix text="404" />
+    <div class="notfound__text">
+      <h1 class="mono">{ui.ja['notfound.title']} / <span lang="en">{ui.en['notfound.title']}</span></h1>
+      <p class="mono"><a href="/">← Home</a></p>
+    </div>
+  </section>
+</Base>

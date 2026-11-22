@@ -1,0 +1,20 @@
+---
+import StrawberryMark from './StrawberryMark.astro';
+import { site } from '../data/site';
+import { useTranslations, type Locale } from '../i18n/ui';
+
+interface Props {
+  lang: Locale;
+}
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer mono">
+  <span class="site-footer__copy">
+    <StrawberryMark size={10} />
+    © {year} {site.name}
+  </span>
+  <a href="#top" class="site-footer__top">{t('footer.top')} ↑</a>
+</footer>

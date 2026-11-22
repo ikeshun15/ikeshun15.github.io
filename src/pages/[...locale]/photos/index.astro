@@ -1,0 +1,22 @@
+---
+import Base from '../../../layouts/Base.astro';
+import SectionHead from '../../../components/SectionHead.astro';
+import PhotoGrid from '../../../components/PhotoGrid.astro';
+import { getPhotos } from '../../../lib/photos';
+import { localeStaticPaths, useTranslations, type Locale } from '../../../i18n/ui';
+
+export const getStaticPaths = localeStaticPaths;
+
+const { lang } = Astro.props as { lang: Locale };
+const t = useTranslations(lang);
+const photos = await getPhotos();
+---
+
+<Base lang={lang} path="/photos/" title={t('photos.title')}>
+  <div class="page">
+    <SectionHead as="h1" label={`Photos — ${String(photos.length).padStart(3, '0')}`} title={t('photos.title')}>
+      <span class="section-head__aside mono">{t('photos.count', { n: photos.length })}</span>
+    </SectionHead>
+    <PhotoGrid photos={photos} lang={lang} eager={6} />
+  </div>
+</Base>
