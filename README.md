@@ -8,8 +8,8 @@ Shun15 の個人サイト。[Astro](https://astro.build) で作った静的サ�
   - 横並び（`/`）：縦スクロールで横に流れる
   - 一覧（`/photos/`）：切り抜かずに行ごとに並べる
 - どちらの表示も「写真 → プロフィール」の 1 ページ。右上の三本線のメニュー（全画面）から Photos / About / History / Gear の各セクションへ移動する。
-  プロフィールは「About（ひとこと・重なった写真と自己紹介）→ History（あゆみ）→ Gear（道具）」。
-  どのセクションも見出しの上に小さな手描きの線画（カメラ・旗へ続く道・レンズ）がある
+  プロフィールは「About（ひとこと・重なった写真と自己紹介）→ History（経歴）→ Gear（道具）」。
+  どのセクションも見出しの上に小さな手描きの線画（カメラ・旗へ続く道・レンズ）がある。並びや中身は `src/content/` で変えられる
 - 写真の下へスクロールすると、写真がドットに化けて散らばり、プロフィールの背景になる（WebGL）。
   ドットは「50 mm F1.8 を開放、45 cm にピントを合わせて撮ったイルミネーションのボケ」として、
   薄肉レンズの錯乱円の式 c = f² / (N (s_f − f)) · |s − s_f| / s で大きさを計算している
@@ -63,18 +63,33 @@ pnpm check     # 型チェック
 - 写真を `public/` に置くと変換されずにそのまま公開されます。写真は必ず `src/photos/` に置いてください。
 - `sample-*.jpg` は仮の画像です。差し替えるときは削除し、`meta.json` の該当行も消してください。
 
-## 文言・リンク・機材を変える
+## 中身を変える
+
+プロフィール・経歴・道具・SNS は、すべて `src/content/` の YAML に書きます（プログラムを触らなくてよい）。
+書き方がきまりに合わないと、ビルド（`pnpm dev` / `pnpm build`）のときに、どのファイルの何番目の項目のどこが違うかを教えてくれます。
+
+| ファイル | 中身 |
+| --- | --- |
+| `src/content/sections.yaml` | プロフィールのセクションの並び・見出し・小さな日本語・手描きの絵・ひとこと・非表示。メニューもこれに合わせて変わる |
+| `src/content/profile.yaml` | About：大きな一言、名前、自己紹介、小さな表、SNS のリンク |
+| `src/content/history.yaml` | History：学校・仕事の経歴（新しい順）。`draft: true` の項目は手元（`pnpm dev`）でだけ表示 |
+| `src/content/gear.yaml` | Gear：いま使っている道具。広告リンクには `sponsored: true` |
+| `src/photos/` と `meta.json` | 写真（上の「写真を追加する」） |
+
+- 中身がひとつもないセクション（公開できる経歴がない、など）は、ページからもメニューからも自動で消えます。
+- 英語のページには、見出しの下の小さな日本語は出ません。
+
+デザインや仕組みを変えるとき：
 
 | 内容 | ファイル |
 | --- | --- |
-| プロフィールの本文・表・あゆみ（日英） | `src/data/about.ts` |
+| サイト名・URL・GA4 の測定 ID | `src/data/site.ts` |
+| ボタンなどの細かな文言（日英） | `src/i18n/ui.ts` |
+| セクションの中身の並べ方 | `src/components/sections/` |
 | 手描きの線画（カメラ・道・レンズ） | `src/components/Doodle.astro` |
-| メニュー（項目・開閉） | `src/components/Header.astro` |
-| 自己紹介の一言（`intro`）、ボタンなどの文言（日英） | `src/i18n/ui.ts` |
-| SNS リンク（アイコンは Simple Icons）、道具のリスト、GA4 の測定 ID | `src/data/site.ts` |
+| メニュー（開閉） | `src/components/Header.astro` |
 | 色・余白・フォント | `src/styles/global.css` の先頭 |
-| プロフィールの中身の並び | `src/components/Profile.astro` |
-| 読み込み中のドット、写真がドットに化けて背景になる演出 | `src/lib/field.ts` |
+| 読み込み中のドット、写真がドットに化けて背景になる演出（レンズの値は `LENS`） | `src/lib/field.ts` |
 | トップの横スクロール | `src/lib/hstrip.ts`、`src/components/PhotoStrip.astro` |
 | 404 のドット文字 | `src/lib/dotmatrix.ts`、`src/lib/dotfont.js` |
 | イチゴのロゴ・OGP 画像 | `src/lib/strawberry.js`。変更後や写真を替えたあとに `pnpm icons [写真のパス]` で favicon と OGP 画像を再生成 |

@@ -1,0 +1,28 @@
+# About（わたしについて）の中身
+
+# 自己紹介の一言（名前の下に、明朝体で大きめに出る。「。」「. 」で改行される）
+catch:
+  ja: エンジニア。光を一枚ずつ、集めています。
+  en: Engineer. Collecting light, one frame at a time.
+
+# 名前（自己紹介のいちばん上に小さく出る）
+name: Shun15
+
+# 自己紹介の本文（一言の下に出る）。1 項目が 1 段落。一言と同じことは書かない
+bio:
+  ja:
+    - ふだんはソフトウェアをつくる仕事をしています。撮りためた写真と、これまでのことを、ここに少しずつ置いていきます。
+  en:
+    - By day I build software. This is where I keep the photographs I have taken, and a little of where I have been.
+
+# 自己紹介の下の小さな表（なくてもよい）。一言・自己紹介に書いていないことだけを書く。例:
+#   - label: { ja: 拠点, en: Based in }
+#     value: { ja: 東京, en: Tokyo }
+facts: []
+
+# SNS のアイコン（About とメニューに出る）。icon は x / instagram / github / facebook
+links:
+  - { label: X, icon: x, href: "https://x.com/0715milk" }
+  - { label: Instagram, icon: instagram, href: "https://www.instagram.com/shun15a0" }
+  - { label: GitHub, icon: github, href: "https://github.com/ikeshun15" }
+  - { label: Facebook, icon: facebook, href: "https://www.facebook.com/shunichi.ikezu" }

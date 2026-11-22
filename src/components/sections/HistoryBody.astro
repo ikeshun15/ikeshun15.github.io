@@ -1,0 +1,39 @@
+---
+/**
+ * History の中身：中央の線に、写真の色で光る節（src/content/history.yaml）。
+ * 下書き（draft: true）は手元（pnpm dev）でだけ表示し、「下書き」の印をつける。
+ */
+import { getHistory } from '../../lib/content';
+import { getPalette } from '../../lib/photos';
+import type { Locale } from '../../i18n/ui';
+
+interface Props {
+  lang: Locale;
+}
+const { lang } = Astro.props;
+const history = await getHistory();
+const palette = await getPalette();
+---
+
+<ol class="timeline" data-field-calm>
+  {
+    history.map((h, i) => (
+      <li class="timeline__item" style={`--node:${palette[i % palette.length]}`} data-timeline-item>
+        <span class="timeline__node" aria-hidden="true" />
+        <p class="timeline__period num">{h.period}</p>
+        <div class="timeline__card card">
+          {h.draft && <span class="card__draft">下書き · pnpm dev だけに表示</span>}
+          <span class="card__title">{h.title[lang]}</span>
+          {h.note && <span class="card__note">{h.note[lang]}</span>}
+          {h.tags.length > 0 && (
+            <ul class="tags">
+              {h.tags.map((tag) => (
+                <li>{tag}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </li>
+    ))
+  }
+</ol>

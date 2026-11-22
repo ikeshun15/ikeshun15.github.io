@@ -1,0 +1,50 @@
+---
+/**
+ * About の中身：重なった写真と、自己紹介のまとまり（名前 → 一言 → 本文 → 小さな表 → SNS）。
+ * 文章は src/content/profile.yaml、重なった写真はトップに載せる写真の最初の 3 枚。
+ */
+import { Image } from 'astro:assets';
+import SocialLinks from '../SocialLinks.astro';
+import { getProfile } from '../../lib/content';
+import { getFeaturedPhotos } from '../../lib/photos';
+import { localePath, splitSentences, useTranslations, type Locale } from '../../i18n/ui';
+
+interface Props {
+  lang: Locale;
+}
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const profile = await getProfile();
+const stack = await getFeaturedPhotos(3);
+const isExternal = (href: string) => /^https?:/.test(href);
+---
+
+<div class="person">
+  <div class="person__stack" data-stack aria-hidden="true">
+    {
+      stack.map((p, i) => (
+        <figure class="person__card" style={`--i:${i};--c:${p.color}`}>
+          <Image src={p.image} widths={[360, 720]} sizes="(max-width: 760px) 50vw, 22vw" format="webp" quality={78} alt="" loading="lazy" />
+        </figure>
+      ))
+    }
+  </div>
+  <div class="person__bio" data-field-calm>
+    <h3 class="person__name">{profile.name}</h3>
+    <p class="person__catch serif">{splitSentences(profile.catch[lang]).map((s) => <span>{s}</span>)}</p>
+    <div class="person__body">{profile.bio[lang].map((p) => <p>{p}</p>)}</div>
+    {
+      profile.facts.length > 0 && (
+        <dl class="facts">
+          {profile.facts.map((f) => (
+            <div>
+              <dt>{f.label[lang]}</dt>
+              <dd>{f.href ? <a href={isExternal(f.href) ? f.href : localePath(lang, f.href)}>{f.value[lang]}</a> : f.value[lang]}</dd>
+            </div>
+          ))}
+        </dl>
+      )
+    }
+    <SocialLinks label={t('links.label')} />
+  </div>
+</div>

@@ -848,21 +848,10 @@ main,
   color: var(--ink-2);
 }
 
-.profile__intro {
-  max-width: 40rem;
-  margin: 0 auto;
-  text-align: center;
-  font-size: clamp(22px, 2.4vw, 32px);
-  line-height: 1.6;
-}
-
-.profile__intro:lang(ja),
-:lang(ja) .profile__intro {
-  word-break: auto-phrase;
-}
-
-.profile__intro span {
-  display: block;
+/* 見出しのあとのひとこと（src/content/sections.yaml の lead） */
+.sect__lead {
+  margin-top: clamp(24px, 3vw, 36px);
+  color: var(--ink-2);
 }
 
 /* 手描きの線画：線が順に描かれていく */
@@ -892,7 +881,6 @@ main,
 
 /* 重なった写真と、自己紹介 */
 .person {
-  margin-top: clamp(80px, 10vw, 140px);
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   align-items: center;
@@ -936,15 +924,32 @@ main,
 }
 
 .person__name {
-  font-size: clamp(28px, 3vw, 40px);
-  font-weight: 300;
-  letter-spacing: -0.02em;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  color: var(--ink-2);
+}
+
+/* 一言：自己紹介の見出しとして、明朝体で大きめに（「。」ごとに改行） */
+.person__catch {
+  margin-top: 14px;
+  font-size: clamp(22px, 2.2vw, 30px);
+  line-height: 1.6;
+}
+
+.person__catch:lang(ja),
+:lang(ja) .person__catch {
+  word-break: auto-phrase;
+}
+
+.person__catch span {
+  display: block;
 }
 
 .person__body {
   display: grid;
   gap: 0.6em;
-  margin-top: 20px;
+  margin-top: 22px;
   color: var(--ink-2);
   line-height: 2;
   letter-spacing: 0.02em;
@@ -999,18 +1004,13 @@ main,
   }
 }
 
-/* Gear：ひとことと、道具のカードを横に並べる */
+/* Gear：道具のカードを横に並べる */
 .gear {
   text-align: center;
 }
 
-.gear__lead {
-  color: var(--ink-2);
-}
-
 .gear .cards {
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
-  margin-top: clamp(28px, 3vw, 40px);
   text-align: left;
 }
 
@@ -1042,6 +1042,16 @@ main,
 
 .card__meta {
   font-size: 12px;
+  color: var(--ink-3);
+}
+
+/* 下書きの印（手元の pnpm dev だけに出る） */
+.card__draft {
+  justify-self: start;
+  padding: 2px 8px;
+  border: 1px dashed var(--ink-3);
+  border-radius: 999px;
+  font-size: 11px;
   color: var(--ink-3);
 }
 

@@ -1,0 +1,25 @@
+# プロフィールのセクション。ここに書いた順に、ページ（写真の下）とメニューに並ぶ
+#
+#   id      … ページ内のリンク先（/#about など）。about / history / gear のどれか
+#   title   … 大きな見出し（日本語・英語のページで共通）
+#   sub     … 見出しの下の小さな日本語（日本語のページだけに出す）
+#   doodle  … 見出しの上の手描きの絵（camera / path / lens）
+#   lead    … 見出しのあとのひとこと（なくてもよい）
+#   hidden  … true にすると、ページからもメニューからも消える
+#
+# 中身がひとつもないセクション（History に公開できる項目がない、など）は、自動で表示しない
+
+- id: about
+  title: About
+  sub: わたしについて
+  doodle: camera
+
+- id: history
+  title: History
+  sub: あゆみ
+  doodle: path
+
+- id: gear
+  title: Gear
+  sub: 道具
+  doodle: lens

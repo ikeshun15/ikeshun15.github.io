@@ -102,8 +102,17 @@ void main() {
   float margin = 260.0; // 大きなボケが画面の端でいきなり消えたり現れたりしないだけの余白
   float span = u_view.y + margin * 2.0;
   // スクロール＝カメラを少し傾けながら下へ動かす：傾きの分はどの光も同じだけ、平行移動の分は近い光ほど大きく動く
-  float y = a_scatter.y * span - u_scroll * (0.25 + 0.6 * par);
-  y = mod(y, span) - margin;
+  float yRaw = a_scatter.y * span - u_scroll * (0.25 + 0.6 * par);
+  // 画面の上に出た光は下から戻ってくるが、同じ光がくり返し現れないように、
+  // 1 周ごとに横の位置と明るさを変え、ときどき休ませる（最初の 1 周だけは元のまま）
+  float cycle = floor(yRaw / span);
+  float y = yRaw - cycle * span - margin;
+  float fresh = step(0.5, abs(cycle));
+  float h1 = fract(sin(a_seed.y * 91.7 + cycle * 13.13) * 43758.5453);
+  float h2 = fract(sin(a_seed.x * 47.3 + cycle * 7.77) * 24634.6345);
+  float h3 = fract(sin(a_seed.w * 19.1 + cycle * 3.33) * 35791.2468);
+  float sx = mix(a_scatter.x, h1, fresh);
+  float rest = fresh * step(h2, mix(0.3, 0.55, fore));
   // カメラのわずかな揺れ：ピント面は動かず、奥の光は逆向きに、手前の光は同じ向きに大きく動く
   vec2 sway = u_sway * (par - 1.0);
   // 光そのものの揺れ（木に掛けた電球が風に揺れるように）。揺れ幅も周期も光ごとにばらばら
@@ -112,11 +121,11 @@ void main() {
     sin(tt * fr.x + a_seed.y * 40.0) + 0.6 * sin(tt * fr.y * 1.7 + a_seed.x * 31.0) + 0.3 * sin(tt * fr.z * 2.9 + a_seed.w * 19.0),
     cos(tt * fr.y + a_seed.w * 37.0) + 0.6 * cos(tt * fr.z * 1.3 + a_seed.y * 23.0) + 0.3 * cos(tt * fr.x * 2.3 + a_seed.x * 11.0)
   ) * mix(8.0, 26.0, fract(a_seed.y * 3.71));
-  vec2 scattered = vec2(a_scatter.x * u_view.x, y) + sway + jitter;
+  vec2 scattered = vec2(sx * u_view.x, y) + sway + jitter;
   vec2 pos = mix(origin, scattered, e);
 
   // ---- 明るさ：光の強さ L が、ボケの面積に広がる（像の明るさ E ∝ L / c²） ----
-  float L = exp((a_seed.w - 0.5) * 1.1);
+  float L = exp((mix(a_seed.w, h3, fresh) - 0.5) * 1.1);
   // 瞬き：多くの光はわずかに、2 割の光はときどききらっと
   float tw = 0.5 + 0.5 * sin(tt * (0.35 + a_drift.w * 0.9) + a_seed.y * 50.0);
   L *= step(0.8, fract(a_seed.y * 7.31)) > 0.5 ? 0.55 + 0.45 * tw * tw * tw : 0.88 + 0.12 * tw;
@@ -142,7 +151,12 @@ void main() {
   // そのうち光源になる粒だけが、だんだん電球の明るさになる（そうしないと、何千もの画素が重なって白飛びする）
   float grow = mix(u_size, max(coc, 2.0), e);
   float conserve = min(1.0, pow(u_size / grow, 2.0) * 1.15);
-  v_alpha = smoothstep(0.0, 0.1, u_s) * mix(conserve, shown, smoothstep(0.25, 0.9, e)) * u_gain;
+  // 広がるほど粒どうしが重なるので、描く粒を間引き、その分だけ濃くする（見え方は同じまま、描く量を一定に抑える）
+  float q = clamp(pow(2.2 * u_size / grow, 2.0), 0.05, 1.0);
+  float pick = fract(a_seed.x * 71.3 + a_seed.z * 13.7);
+  float thin = a_score < u_keep ? 1.0 : clamp((q - pick) / (0.2 * q), 0.0, 1.0) / q;
+  v_alpha = smoothstep(0.0, 0.1, u_s) * mix(min(1.0, conserve * thin), shown, smoothstep(0.25, 0.9, e)) * u_gain;
+  v_alpha *= 1.0 - rest * e;
   // 読み込み中：光がばらばらの時間に点灯する
   float ap = clamp((u_appear - a_drift.w * 1.15 - a_seed.y * 0.2) / 0.6, 0.0, 1.0);
   v_alpha *= ap * ap * (3.0 - 2.0 * ap);
@@ -386,6 +400,11 @@ export function mountField() {
   let raf = 0;
   let dpr = 1;
   let lastY = window.scrollY;
+  /** なめらかにしたスクロール量（ホイールの 1 段ごとの飛びを、ばねのように追いかける） */
+  let smoothY = Math.max(0, window.scrollY);
+  let startY = 0;
+  let spanS = 1;
+  let measured = false;
   let lastT = performance.now();
   let lastFrame = lastT;
   let vel = 0;
@@ -508,17 +527,23 @@ export function mountField() {
       const vh = window.innerHeight;
       const y = Math.max(0, window.scrollY);
       const top = target.getBoundingClientRect().top;
-      const start = Math.max(0, top + y - vh);
-      scrollS = clamp01((y - start) / (vh * 0.75));
-      s = Math.max(scrollS, introS);
+      startY = Math.max(0, top + y - vh);
+      spanS = vh * 0.75;
+      // 描くときは、なめらかにしたスクロール量で進める（frame）。ここでは準備の判断だけ、実際のスクロール量で行う
+      const now = Math.max(clamp01((y - startY) / spanS), introS);
+      if (!measured) {
+        measured = true;
+        smoothY = y;
+        scrollS = clamp01((y - startY) / spanS);
+      }
 
       // 化け始める瞬間に、用意したドットが今見えている写真と同じか確かめる
       // （列が横に動いている途中で準備した場合などは作り直す）
-      if (state === 'ready' && s > 0 && !checked && !intro) {
+      if (state === 'ready' && now > 0 && !checked && !intro) {
         checked = true;
         if (!sameSet(wanted())) state = 'idle';
       }
-      if (s === 0) checked = false;
+      if (now === 0) checked = false;
       if (state === 'idle' && !intro && top < vh * 2.5) prepare(wanted());
     }
     kick();
@@ -582,6 +607,13 @@ export function mountField() {
     lastFrame = now;
     clock += Math.min(dt, 50) / 1000;
     stepIntro(now);
+    // ホイールの 1 段ごとの飛びをなめらかに。大きく飛んだとき（ページ内リンクなど）は追いかけずに合わせる
+    const sy = Math.max(0, window.scrollY);
+    if (Math.abs(sy - smoothY) > window.innerHeight * 1.5) smoothY = sy;
+    smoothY += (sy - smoothY) * (1 - Math.exp(-Math.min(dt, 100) / 110));
+    if (Math.abs(sy - smoothY) < 0.3) smoothY = sy;
+    const settling = smoothY !== sy;
+    if (target) scrollS = clamp01((smoothY - startY) / spanS);
     s = Math.max(scrollS, introS);
 
     // 化け始める直前（写真がまだほとんど見えている間）は、用意したドットが今見えている写真と同じかを確かめ続ける。
@@ -597,7 +629,10 @@ export function mountField() {
     gl!.clearColor(0, 0, 0, 0);
     gl!.clear(gl!.COLOR_BUFFER_BIT);
     const drawAmbient = !useLayers && !!intro;
-    if (s <= 0 || (!useLayers && !drawAmbient)) return;
+    if (s <= 0 || (!useLayers && !drawAmbient)) {
+      if (settling) kick();
+      return;
+    }
 
     const vw = canvas.clientWidth;
     const vh = canvas.clientHeight;
@@ -636,11 +671,10 @@ export function mountField() {
     gl!.uniform1f(uni.u_time, clock);
 
     // スクロールの速さ（px/ms をなめらかにして -1.5〜1.5 程度に）
-    const y = window.scrollY;
-    vel += ((y - lastY) / Math.max(1, now - lastT) - vel) * 0.08;
-    lastY = y;
+    vel += ((smoothY - lastY) / Math.max(1, now - lastT) - vel) * 0.08;
+    lastY = smoothY;
     lastT = now;
-    gl!.uniform1f(uni.u_scroll, y);
+    gl!.uniform1f(uni.u_scroll, smoothY);
     gl!.uniform1f(uni.u_vel, Math.max(-1.5, Math.min(1.5, vel / 2)));
 
     if (useLayers) {

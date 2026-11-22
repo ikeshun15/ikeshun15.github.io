@@ -1,0 +1,47 @@
+---
+/**
+ * Gear の中身：いま使っている道具のカード（src/content/gear.yaml）。
+ * 広告のリンク（sponsored: true）がひとつでもあれば、下に広告の表記を出す。
+ */
+import { getGear } from '../../lib/content';
+import { useTranslations, type Locale } from '../../i18n/ui';
+
+interface Props {
+  lang: Locale;
+}
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const gear = await getGear();
+const hasSponsored = gear.some((g) => g.sponsored);
+---
+
+<div class="gear" data-field-calm>
+  <ul class="cards">
+    {
+      gear.map((g) => {
+        const Tag = g.href ? 'a' : 'div';
+        return (
+          <li>
+            <Tag
+              class="card"
+              href={g.href}
+              target={g.href ? '_blank' : undefined}
+              rel={g.href ? (g.sponsored ? 'sponsored noopener' : 'noopener') : undefined}
+              data-hover-color={g.href ? '' : undefined}
+            >
+              <span class="card__meta">{g.category[lang]}</span>
+              <span class="card__title">{g.name}</span>
+              {g.model && <span class="card__note num">{g.model}</span>}
+              {g.href && (
+                <span class="card__arrow" aria-hidden="true">
+                  ↗
+                </span>
+              )}
+            </Tag>
+          </li>
+        );
+      })
+    }
+  </ul>
+  {hasSponsored && <p class="disclosure">{t('gear.disclosure')}</p>}
+</div>

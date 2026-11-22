@@ -1,156 +1,63 @@
 ---
 /**
  * プロフィール（横並び・一覧の、写真の下）。
- * About（わたしについて）→ History（あゆみ）→ Gear（道具）。
- * どのセクションも「手描きの線画 → 見出し → 小さな日本語」を中央にそろえ、その下に中身を置く。
+ * 並び・見出し・表示するかどうかは src/content/sections.yaml で決める（src/lib/content.ts の getSections）。
+ * どのセクションも「手描きの線画 → 見出し → 小さな日本語（日本語のページだけ）→ ひとこと」を中央にそろえ、
+ * その下に中身を置く。中身は src/components/sections/ の部品が、src/content/*.yaml から作る。
  * 写真の下までスクロールすると、写真が化けたドットがこの後ろに散らばる（data-field-target、src/lib/field.ts）
  */
-import { Image } from 'astro:assets';
-import SocialLinks from './SocialLinks.astro';
 import Doodle from './Doodle.astro';
-import { about } from '../data/about';
-import { gear, site } from '../data/site';
-import { getFeaturedPhotos, getPalette } from '../lib/photos';
-import { localePath, splitSentences, useTranslations, type Locale } from '../i18n/ui';
+import AboutBody from './sections/AboutBody.astro';
+import HistoryBody from './sections/HistoryBody.astro';
+import GearBody from './sections/GearBody.astro';
+import { getSections } from '../lib/content';
+import type { Locale } from '../i18n/ui';
 
 interface Props {
   lang: Locale;
 }
 const { lang } = Astro.props;
-const t = useTranslations(lang);
-const palette = await getPalette();
-const stack = await getFeaturedPhotos(3);
-const isExternal = (href: string) => /^https?:/.test(href);
-const hasSponsored = gear.some((g) => g.sponsored);
+const sections = await getSections();
+const bodies = { about: AboutBody, history: HistoryBody, gear: GearBody };
 ---
 
 <div class="profile" data-field-target>
-  <!-- About：ひとこと → 重なった写真と自己紹介 -->
-  <section class="sect" id="about" aria-labelledby="about-title">
-    <header class="sect__head" data-field-calm>
-      <Doodle kind="camera" class="sect__doodle" />
-      <h2 class="display" id="about-title">{t('about.title')}</h2>
-      <p class="display-sub">{t('about.sub')}</p>
-    </header>
-    <p class="profile__intro serif" data-field-calm>{splitSentences(t('intro')).map((s) => <span>{s}</span>)}</p>
-    <div class="person">
-      <div class="person__stack" data-stack aria-hidden="true">
-        {
-          stack.map((p, i) => (
-            <figure class="person__card" style={`--i:${i};--c:${p.color}`}>
-              <Image src={p.image} widths={[360, 720]} sizes="(max-width: 760px) 50vw, 22vw" format="webp" quality={78} alt="" loading="lazy" />
-            </figure>
-          ))
-        }
-      </div>
-      <div class="person__bio" data-field-calm>
-        <h3 class="person__name">{site.name}</h3>
-        <div class="person__body">{about.body[lang].map((p) => <p>{p}</p>)}</div>
-        {
-          about.facts.length > 0 && (
-            <dl class="facts">
-              {about.facts.map((f) => (
-                <div>
-                  <dt>{f.label[lang]}</dt>
-                  <dd>
-                    {f.href ? <a href={isExternal(f.href) ? f.href : localePath(lang, f.href)}>{f.value[lang]}</a> : f.value[lang]}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-          )
-        }
-        <SocialLinks label={t('links.label')} />
-      </div>
-    </div>
-  </section>
-
-  <!-- History：中央の線に、写真の色で光る節 -->
-  <section class="sect" id="history" aria-labelledby="history-title">
-    <header class="sect__head" data-field-calm>
-      <Doodle kind="path" class="sect__doodle" />
-      <h2 class="display" id="history-title">{t('history.title')}</h2>
-      <p class="display-sub">{t('history.sub')}</p>
-    </header>
-    <ol class="timeline" data-field-calm>
-      {
-        about.history.map((h, i) => (
-          <li class="timeline__item" style={`--node:${palette[i % palette.length]}`} data-timeline-item>
-            <span class="timeline__node" aria-hidden="true" />
-            <p class="timeline__period num">{h.period}</p>
-            <div class="timeline__card card">
-              <span class="card__title">{h.title[lang]}</span>
-              {h.note && <span class="card__note">{h.note[lang]}</span>}
-              {h.tags && (
-                <ul class="tags">
-                  {h.tags.map((tag) => (
-                    <li>{tag}</li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          </li>
-        ))
-      }
-    </ol>
-  </section>
-
-  <!-- Gear：使っている道具のカード -->
-  <section class="sect" id="gear" aria-labelledby="gear-title">
-    <header class="sect__head" data-field-calm>
-      <Doodle kind="lens" class="sect__doodle" />
-      <h2 class="display" id="gear-title">{t('gear.title')}</h2>
-      <p class="display-sub">{t('gear.sub')}</p>
-    </header>
-    <div class="gear" data-field-calm>
-      <p class="gear__lead">{t('gear.lead')}</p>
-      <ul class="cards">
-        {
-          gear.map((g) => {
-            const Tag = g.href ? 'a' : 'div';
-            return (
-              <li>
-                <Tag
-                  class="card"
-                  href={g.href}
-                  target={g.href ? '_blank' : undefined}
-                  rel={g.href ? (g.sponsored ? 'sponsored noopener' : 'noopener') : undefined}
-                  data-hover-color={g.href ? '' : undefined}
-                >
-                  <span class="card__meta">{g.category[lang]}</span>
-                  <span class="card__title">{g.name}</span>
-                  {g.model && <span class="card__note num">{g.model}</span>}
-                  {g.href && <span class="card__arrow" aria-hidden="true">↗</span>}
-                </Tag>
-              </li>
-            );
-          })
-        }
-      </ul>
-      {hasSponsored && <p class="disclosure">{t('gear.disclosure')}</p>}
-    </div>
-  </section>
+  {
+    sections.map((s) => {
+      const Body = bodies[s.id];
+      return (
+        <section class="sect" id={s.id} aria-labelledby={`${s.id}-title`} data-section>
+          <header class="sect__head" data-field-calm>
+            {s.doodle && <Doodle kind={s.doodle} class="sect__doodle" />}
+            <h2 class="display" id={`${s.id}-title`}>
+              {s.title}
+            </h2>
+            {lang === 'ja' && s.sub && <p class="display-sub">{s.sub}</p>}
+            {s.lead && <p class="sect__lead">{s.lead[lang]}</p>}
+          </header>
+          <Body lang={lang} />
+        </section>
+      );
+    })
+  }
 </div>
 
 <script>
   // いま画面の中央にあるセクションを、メニューの現在地にする（どれでもなければ写真）
   const navLinks = [...document.querySelectorAll<HTMLAnchorElement>('[data-nav]')];
-  const sectionIds = ['about', 'history', 'gear'];
+  const sections = [...document.querySelectorAll<HTMLElement>('[data-section]')];
   const visible = new Set<string>();
   const spy = new IntersectionObserver(
     (entries) => {
       entries.forEach((e) => (e.isIntersecting ? visible.add(e.target.id) : visible.delete(e.target.id)));
-      const current = [...sectionIds].reverse().find((id) => visible.has(id)) ?? 'photos';
+      const current = [...sections].reverse().find((el) => visible.has(el.id))?.id ?? 'photos';
       navLinks.forEach((a) =>
         a.dataset.nav === current ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current'),
       );
     },
     { rootMargin: '-50% 0px -50% 0px' },
   );
-  sectionIds.forEach((id) => {
-    const el = document.getElementById(id);
-    if (el) spy.observe(el);
-  });
+  sections.forEach((el) => spy.observe(el));
 
   // 重なった写真が広がる／あゆみの節が光る（画面に入ったとき）
   const reveal = new IntersectionObserver(

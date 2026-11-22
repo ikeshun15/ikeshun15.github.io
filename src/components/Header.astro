@@ -8,6 +8,7 @@ import Brand from './Brand.astro';
 import ThemeToggle from './ThemeToggle.astro';
 import SocialLinks from './SocialLinks.astro';
 import { getPalette } from '../lib/photos';
+import { getSections } from '../lib/content';
 import { localePath, otherLocale, useTranslations, type Locale } from '../i18n/ui';
 
 interface Props {
@@ -20,15 +21,16 @@ const t = useTranslations(lang);
 const other = otherLocale(lang);
 const palette = await getPalette();
 
-// メニューの項目。横並び・一覧のページでは、そのページの下のプロフィールへ。ほかのページからはトップへ
+// メニューの項目：写真と、プロフィールのセクション（並び・見出しは src/content/sections.yaml）。
+// 横並び・一覧のページでは、そのページの下のプロフィールへ。ほかのページからはトップへ。
+// 小さな日本語は日本語のページだけ
 const home = localePath(lang, '/');
 const base = path === '/' || path === '/photos/' ? localePath(lang, path) : home;
 const onPhotos = path === '/' || path.startsWith('/photos/');
+const sections = await getSections();
 const items = [
-  { href: base, nav: 'photos', word: 'Photos', sub: t('menu.photosSub'), current: onPhotos },
-  { href: `${base}#about`, nav: 'about', word: 'About', sub: t('about.sub'), current: false },
-  { href: `${base}#history`, nav: 'history', word: 'History', sub: t('history.sub'), current: false },
-  { href: `${base}#gear`, nav: 'gear', word: 'Gear', sub: t('gear.sub'), current: false },
+  { href: base, nav: 'photos', word: 'Photos', sub: lang === 'ja' ? '写真' : undefined, current: onPhotos },
+  ...sections.map((s) => ({ href: `${base}#${s.id}`, nav: s.id, word: s.title, sub: lang === 'ja' ? s.sub : undefined, current: false })),
 ];
 ---
 
@@ -78,7 +80,7 @@ const items = [
               aria-current={it.current ? 'page' : undefined}
             >
               <span class="menu__word">{it.word}</span>
-              <span class="menu__sub">{it.sub}</span>
+              {it.sub && <span class="menu__sub">{it.sub}</span>}
             </a>
           </li>
         ))
