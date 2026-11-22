@@ -46,10 +46,13 @@ export interface Photo {
   title: Title;
   /** "2024.08.03" 形式。不明なら null */
   date: string | null;
+  /** "2024-08-03T19:30:00" 形式（撮影地のローカル時刻）。不明なら空文字 */
   sortKey: string;
   exif: Exif;
   /** 読み込み前に敷く平均色 */
   color: string;
+  /** 写真の中の鮮やかな色（ホバーや読み込み中のドットに使う）。色の少ない写真は null */
+  accent: string | null;
   featured: boolean;
   order?: number;
 }
@@ -133,18 +136,59 @@ async function averageColor(file: string) {
   }
 }
 
+/**
+ * 写真の中から「その写真らしい鮮やかな色」を 1 つ選ぶ。
+ * 縮小した画素の中で、彩度が高く明るすぎず暗すぎない色を選び、
+ * 昼・夜どちらの背景でも見えるよう明るさをそろえる。
+ */
+async function accentColor(file: string) {
+  try {
+    const { data } = await sharp(file).rotate().resize(24, 24, { fit: 'cover' }).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+    let best: [number, number, number] | null = null;
+    let bestScore = 0;
+    for (let i = 0; i < data.length; i += 3) {
+      const [h, s, l] = rgbToHsl(data[i], data[i + 1], data[i + 2]);
+      const score = s * (1 - Math.abs(l - 0.55) * 1.6);
+      if (score > bestScore) {
+        bestScore = score;
+        best = [h, s, l];
+      }
+    }
+    if (!best || best[1] < 0.18) return null;
+    return `hsl(${Math.round(best[0])} ${Math.round(Math.min(0.85, best[1] * 1.15) * 100)}% 56%)`;
+  } catch {
+    return null;
+  }
+}
+
+function rgbToHsl(r: number, g: number, b: number): [number, number, number] {
+  r /= 255;
+  g /= 255;
+  b /= 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  if (max === min) return [0, 0, l];
+  const d = max - min;
+  const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+  let h = max === r ? (g - b) / d + (g < b ? 6 : 0) : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
+  h *= 60;
+  return [h, s, l];
+}
+
 async function loadPhoto(key: string, image: ImageMetadata): Promise<Photo | null> {
   const file = path.basename(key);
   const entry = meta[file] ?? {};
   if (entry.hidden) return null;
 
   const abs = path.join(process.cwd(), key);
-  const [raw, info, color] = await Promise.all([
+  const [raw, info, color, accent] = await Promise.all([
     exifr
       .parse(abs, { pick: EXIF_TAGS, gps: false, reviveValues: false })
       .catch(() => undefined) as Promise<Record<string, unknown> | undefined>,
     sharp(abs).metadata(),
     averageColor(abs),
+    accentColor(abs),
   ]);
 
   const rotated = (info.orientation ?? 1) >= 5;
@@ -164,6 +208,7 @@ async function loadPhoto(key: string, image: ImageMetadata): Promise<Photo | nul
     sortKey: date?.[1] ?? '',
     exif: formatExif(raw),
     color,
+    accent,
     featured: !!entry.featured,
     order: entry.order,
   };
@@ -210,7 +255,49 @@ export function photoTitle(p: Photo, lang: Locale) {
   return p.title[lang] ?? p.title.ja ?? p.title.en ?? '';
 }
 
-/** "50mm  f/1.8  1/250s  ISO 100" のような一行表記 */
+/** "Sony α7 · 50mm · f/1.8 · 1/250s · ISO 100" のような一行表記 */
 export function exifLine(e: Exif) {
-  return [e.focal, e.aperture, e.shutter, e.iso].filter(Boolean).join('  ');
+  return [e.camera, e.lens, e.focal, e.aperture, e.shutter, e.iso].filter(Boolean).join(' · ');
+}
+
+/** サイト全体で使う写真の色のパレット（トップに載せる写真を優先、最大 8 色） */
+export async function getPalette() {
+  const featured = await getFeaturedPhotos(24);
+  const all = await getPhotos();
+  const colors = [...featured, ...all].map((p) => p.accent).filter((c): c is string => !!c);
+  const unique = [...new Set(colors)].slice(0, 8);
+  return unique.length ? unique : ['hsl(5 76% 53%)'];
+}
+
+/**
+ * 写真を縦横に区切り、区画ごとの色を返す（読み込み中のドットに使う）。
+ * 区画の数はおよそ target 個。u, v は区画の中心（0〜1）
+ */
+const mosaicCache = new Map<string, ReturnType<typeof makeMosaic>>();
+
+/** 写真を cols×rows に区切った区画ごとの色（同じ写真・同じ細かさはビルド中に一度だけ計算する） */
+export function getMosaic(photo: Photo, target = 15) {
+  const key = `${photo.file}:${target}`;
+  if (!mosaicCache.has(key)) mosaicCache.set(key, makeMosaic(photo, target));
+  return mosaicCache.get(key)!;
+}
+
+async function makeMosaic(photo: Photo, target: number) {
+  const cols = Math.max(2, Math.round(Math.sqrt(target * photo.ar)));
+  const rows = Math.max(2, Math.round(target / cols));
+  const abs = path.join(process.cwd(), 'src/photos', photo.file);
+  const { data } = await sharp(abs)
+    .rotate()
+    .resize(cols, rows, { fit: 'fill' })
+    .removeAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+  const cells: { u: number; v: number; color: string }[] = [];
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      const i = (y * cols + x) * 3;
+      cells.push({ u: (x + 0.5) / cols, v: (y + 0.5) / rows, color: `rgb(${data[i]} ${data[i + 1]} ${data[i + 2]})` });
+    }
+  }
+  return { slug: photo.slug, ar: photo.ar, cols, rows, cells };
 }

@@ -1,0 +1,43 @@
+---
+/** 横並び ／ 一覧 の切り替え。ページ間の移動で、写真が新しい位置へ移っていく */
+import { localePath, useTranslations, type Locale } from '../i18n/ui';
+
+type View = 'strip' | 'grid';
+interface Props {
+  lang: Locale;
+  current: View;
+}
+const { lang, current } = Astro.props;
+const t = useTranslations(lang);
+
+const views: { id: View; href: string; label: string }[] = [
+  { id: 'strip', href: '/', label: t('view.strip') },
+  { id: 'grid', href: '/photos/', label: t('view.grid') },
+];
+---
+
+<nav class="viewtoggle" aria-label={t('view.label')}>
+  {
+    views.map((v) => (
+      <a href={localePath(lang, v.href)} aria-label={v.label} title={v.label} aria-current={v.id === current ? 'page' : undefined}>
+        <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true">
+          {v.id === 'strip' && (
+            <>
+              <rect x="1.5" y="4.5" width="4.5" height="11" rx="0.5" />
+              <rect x="7.75" y="4.5" width="4.5" height="11" rx="0.5" />
+              <rect x="14" y="4.5" width="4.5" height="11" rx="0.5" />
+            </>
+          )}
+          {v.id === 'grid' && (
+            <>
+              <rect x="2.5" y="2.5" width="6.25" height="6.25" rx="0.5" />
+              <rect x="11.25" y="2.5" width="6.25" height="6.25" rx="0.5" />
+              <rect x="2.5" y="11.25" width="6.25" height="6.25" rx="0.5" />
+              <rect x="11.25" y="11.25" width="6.25" height="6.25" rx="0.5" />
+            </>
+          )}
+        </svg>
+      </a>
+    ))
+  }
+</nav>

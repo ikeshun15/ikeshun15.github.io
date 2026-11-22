@@ -2,11 +2,16 @@
 import '@fontsource-variable/geist';
 import '@fontsource-variable/geist-mono';
 import '@fontsource-variable/noto-sans-jp';
+import '@fontsource/instrument-serif/400.css';
+import '@fontsource/instrument-serif/400-italic.css';
+import '@fontsource/shippori-mincho/400.css';
+import '@fontsource/shippori-mincho/500.css';
 import '../styles/global.css';
 
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import { site } from '../data/site';
+import { getFeaturedPhotos, getMosaic, type Photo } from '../lib/photos';
 import { localePath, locales, useTranslations, type Locale } from '../i18n/ui';
 
 interface Props {
@@ -19,15 +24,30 @@ interface Props {
   image?: string;
   /** 404 など、言語切り替えの対象にしないページ */
   noAlternates?: boolean;
+  /** 読み込み中のドットの色をとる写真（省略時はトップの最初の写真） */
+  intro?: Photo[];
 }
 
-const { lang, path, title, description, image = '/og.png', noAlternates = false } = Astro.props;
+const { lang, path, title, description, image = '/og.png', noAlternates = false, intro } = Astro.props;
 const t = useTranslations(lang);
 const pageTitle = title ? `${title} — ${site.name}` : site.name;
 const desc = description ?? t('meta.description');
 const canonical = new URL(localePath(lang, path), site.url).href;
 const ogImage = new URL(image, site.url).href;
 const gaId = site.gaMeasurementId;
+
+// 読み込み中のドットの仮の色：写真（ふだんはトップの最初の 3 枚）を細かく区切った色を、鮮やかな順に 240 色。
+// 写真が読み込めたら、ドットはそれぞれ写真の本当の色に変わってから集まる（src/lib/field.ts）
+const introPhotos = intro ?? (await getFeaturedPhotos(3));
+const mosaics = await Promise.all(introPhotos.map((p) => getMosaic(p, Math.ceil(480 / Math.max(1, introPhotos.length)))));
+const rgbOf = (c: string) => (c.match(/\d+/g) ?? ['136', '136', '136']).slice(0, 3).map(Number);
+const dots = mosaics
+  .flatMap((m) => m.cells.map((c) => rgbOf(c.color)))
+  .map((c) => ({ c, chroma: Math.max(...c) - Math.min(...c) }))
+  .sort((x, y) => y.chroma - x.chroma)
+  .slice(0, 240)
+  .map(({ c }) => c.map((n) => n.toString(16).padStart(2, '0')).join(''))
+  .join('');
 ---
 
 <!doctype html>
@@ -47,7 +67,7 @@ const gaId = site.gaMeasurementId;
     <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <meta name="theme-color" content="#f3f3f1" />
+    <meta name="theme-color" content="#fbfbf9" />
     <meta name="color-scheme" content="light dark" />
 
     <meta property="og:type" content="website" />
@@ -60,17 +80,31 @@ const gaId = site.gaMeasurementId;
     <meta name="twitter:card" content="summary_large_image" />
 
     <script is:inline>
-      // 描画前にテーマを確定してちらつきを防ぐ
+      // 描画前にテーマを確定してちらつきを防ぐ。動きを減らす設定でなければ粒子の演出を有効にする
       (function () {
+        var root = document.documentElement;
         var stored = null;
         try {
           stored = localStorage.getItem('theme');
         } catch (e) {}
         var theme = stored || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-        document.documentElement.dataset.theme = theme;
-        document
-          .querySelector('meta[name="theme-color"]')
-          .setAttribute('content', theme === 'dark' ? '#0b0b0b' : '#f3f3f1');
+        root.dataset.theme = theme;
+        document.querySelector('meta[name="theme-color"]').setAttribute('content', theme === 'dark' ? '#0a0a0a' : '#fbfbf9');
+        var motionOK = !matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (motionOK) root.classList.add('fx');
+
+        // 読み込み中のドットは、直接開いたとき・リロードしたときに毎回出す。
+        // サイト内のリンク移動と「戻る／進む」では出さない（ページ切り替えのたびに待たせないため）。
+        // 進行は src/lib/field.ts が受け持つ。スクリプトが動かなかったときのために、10 秒で必ず解除する
+        var entry = performance.getEntriesByType ? performance.getEntriesByType('navigation')[0] : null;
+        var type = entry ? entry.type : 'navigate';
+        var internal = document.referrer.indexOf(location.origin + '/') === 0;
+        var show = motionOK && type !== 'back_forward' && (type === 'reload' || !internal);
+        if (!show) return;
+        root.classList.add('is-loading');
+        setTimeout(function () {
+          root.classList.remove('is-loading', 'is-loaded');
+        }, 10000);
       })();
     </script>
 
@@ -90,12 +124,18 @@ const gaId = site.gaMeasurementId;
       )
     }
   </head>
-  <body>
+  <body data-dots={dots}>
     <a class="skip-link" href="#main">{t('skip')}</a>
     <Header lang={lang} path={path} />
     <main id="main">
       <slot />
     </main>
     <Footer lang={lang} />
+
+    <script>
+      // 写真とドットの演出（読み込み中のドット・写真の下のドットの背景）
+      import { mountField } from '../lib/field';
+      mountField();
+    </script>
   </body>
 </html>

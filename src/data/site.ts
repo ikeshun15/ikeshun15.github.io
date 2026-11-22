@@ -10,12 +10,13 @@ export const site = {
   gaMeasurementId: '',
 };
 
+/** SNS。icon は src/components/SocialLinks.astro のアイコン名 */
 export const links = [
-  { label: 'X', handle: '@0715milk', href: 'https://x.com/0715milk' },
-  { label: 'Instagram', handle: '@shun15a0', href: 'https://www.instagram.com/shun15a0' },
-  { label: 'GitHub', handle: 'ikeshun15', href: 'https://github.com/ikeshun15' },
-  { label: 'Facebook', handle: 'shunichi.ikezu', href: 'https://www.facebook.com/shunichi.ikezu' },
-];
+  { label: 'X', icon: 'x', href: 'https://x.com/0715milk' },
+  { label: 'Instagram', icon: 'instagram', href: 'https://www.instagram.com/shun15a0' },
+  { label: 'GitHub', icon: 'github', href: 'https://github.com/ikeshun15' },
+  { label: 'Facebook', icon: 'facebook', href: 'https://www.facebook.com/shunichi.ikezu' },
+] as const;
 
 type L10n = { ja: string; en: string };
 

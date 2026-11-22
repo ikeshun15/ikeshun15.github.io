@@ -1,0 +1,39 @@
+---
+/** トップの写真列。縦スクロールで横に流れる */
+import PhotoCard from './PhotoCard.astro';
+import ViewToggle from './ViewToggle.astro';
+import type { Photo } from '../lib/photos';
+import { useTranslations, type Locale } from '../i18n/ui';
+
+interface Props {
+  photos: Photo[];
+  lang: Locale;
+}
+const { photos, lang } = Astro.props;
+const t = useTranslations(lang);
+---
+
+<section class="hstrip" data-hstrip data-field-source="strip" aria-label={t('strip.label')}>
+  <div class="hstrip__sticky" data-sticky>
+    <div class="viewbar">
+      <ViewToggle lang={lang} current="strip" />
+    </div>
+    <div class="hstrip__viewport" data-viewport>
+      <ul class="hstrip__track" data-track>
+        {
+          photos.map((p, i) => (
+            <li>
+              <PhotoCard photo={p} lang={lang} eager={i < 3} sizes={`(max-width: 640px) ${Math.round(p.ar * 62)}vh, ${Math.round(p.ar * 72)}vh`} />
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+    <div class="hstrip__progress" aria-hidden="true"></div>
+  </div>
+</section>
+
+<script>
+  import { mountHStrip } from '../lib/hstrip';
+  document.querySelectorAll<HTMLElement>('[data-hstrip]').forEach(mountHStrip);
+</script>

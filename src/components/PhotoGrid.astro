@@ -1,51 +1,22 @@
 ---
-/**
- * 写真を切り抜かずに並べる「ジャスティファイド」グリッド。
- * 各写真の縦横比を flex-grow に使い、行ごとに高さが揃う。
- */
-import { Image } from 'astro:assets';
-import { exifLine, photoTitle, type Photo } from '../lib/photos';
-import { localePath, useTranslations, type Locale } from '../i18n/ui';
+/** 一覧。写真を切り抜かず、行ごとに高さを揃えて並べる */
+import PhotoCard from './PhotoCard.astro';
+import type { Photo } from '../lib/photos';
+import type { Locale } from '../i18n/ui';
 
 interface Props {
   photos: Photo[];
   lang: Locale;
-  /** 先頭から何枚を即時読み込みにするか */
-  eager?: number;
 }
-const { photos, lang, eager = 0 } = Astro.props;
-const t = useTranslations(lang);
+const { photos, lang } = Astro.props;
 ---
 
-{
-  photos.length === 0 ? (
-    <p class="empty mono">{t('photos.empty')}</p>
-  ) : (
-    <ul class="jgrid">
-      {photos.map((p, i) => {
-        const title = photoTitle(p, lang);
-        return (
-          <li id={`p-${p.slug}`} class="jgrid__item reveal" style={`--ar:${p.ar.toFixed(4)};--c:${p.color}`}>
-            <a class="jgrid__link" href={localePath(lang, `/photos/${p.slug}/`)}>
-              <Image
-                src={p.image}
-                widths={[360, 640, 960, 1400]}
-                sizes="(max-width: 640px) 60vw, (max-width: 1200px) 40vw, 30vw"
-                format="webp"
-                quality={80}
-                alt={title || `${t('photo.untitled')} ${i + 1}`}
-                loading={i < eager ? 'eager' : 'lazy'}
-                decoding="async"
-                style={`view-transition-name: photo-${p.slug}`}
-              />
-              <span class="jgrid__cap mono" aria-hidden="true">
-                <span>{title || String(i + 1).padStart(3, '0')}</span>
-                <span>{exifLine(p.exif)}</span>
-              </span>
-            </a>
-          </li>
-        );
-      })}
-    </ul>
-  )
-}
+<ul class="pgrid" data-field-source="grid">
+  {
+    photos.map((p, i) => (
+      <li id={`p-${p.slug}`} style={`--ar:${p.ar.toFixed(4)}`}>
+        <PhotoCard photo={p} lang={lang} eager={i < 6} sizes="(max-width: 640px) 50vw, 33vw" />
+      </li>
+    ))
+  }
+</ul>

@@ -1,7 +1,7 @@
 ---
 import { Image, getImage } from 'astro:assets';
 import Base from '../../../layouts/Base.astro';
-import { getPhotos, photoTitle } from '../../../lib/photos';
+import { exifLine, getPhotos, photoTitle } from '../../../lib/photos';
 import { localePath, localeStaticPaths, useTranslations, type Locale } from '../../../i18n/ui';
 
 export async function getStaticPaths() {
@@ -22,44 +22,31 @@ const prev = photos[index - 1];
 const next = photos[index + 1];
 
 const title = photoTitle(photo, lang);
-const num = (i: number) => String(i + 1).padStart(3, '0');
 const href = (slug: string) => localePath(lang, `/photos/${slug}/`);
 const closeHref = `${localePath(lang, '/photos/')}#p-${photo.slug}`;
-
-const exifRows = [
-  ['Camera', photo.exif.camera],
-  ['Lens', photo.exif.lens],
-  ['Focal', photo.exif.focal],
-  ['Aperture', photo.exif.aperture],
-  ['Shutter', photo.exif.shutter],
-  ['ISO', photo.exif.iso?.replace(/^ISO /, '')],
-  ['Date', photo.date],
-].filter((r): r is [string, string] => Boolean(r[1]));
+const meta = [photo.date, exifLine(photo.exif)].filter(Boolean).join(' · ');
 
 const og = await getImage({ src: photo.image, width: 1200, format: 'jpg', quality: 80 });
 ---
 
-<Base
-  lang={lang}
-  path={`/photos/${photo.slug}/`}
-  title={title || `${t('photos.title')} ${num(index)}`}
-  image={og.src}
->
+<Base lang={lang} path={`/photos/${photo.slug}/`} title={title || t('photos.title')} image={og.src} intro={[photo]}>
   <article
     class="viewer"
     data-viewer
+    data-slug={photo.slug}
+    data-accent={photo.accent ?? undefined}
     data-prev={prev ? href(prev.slug) : undefined}
     data-next={next ? href(next.slug) : undefined}
-    data-close={closeHref}
+    data-close-href={closeHref}
   >
-    <div class="viewer__stage" data-viewer-stage>
+    <div class="viewer__stage" data-viewer-stage data-field-source="still">
       <Image
         src={photo.image}
         widths={[800, 1280, 1920, 2560]}
         sizes="(max-width: 640px) 100vw, 86vw"
         format="webp"
         quality={82}
-        alt={title || `${t('photo.untitled')} ${num(index)}`}
+        alt={title || t('photo.untitled')}
         loading="eager"
         fetchpriority="high"
         class="viewer__img"
@@ -69,40 +56,14 @@ const og = await getImage({ src: photo.image, width: 1200, format: 'jpg', qualit
 
     <div class="viewer__bar">
       <div class="viewer__meta">
-        <span class="viewer__index mono">{num(index)} / {String(photos.length).padStart(3, '0')}</span>
-        {title && <h1 class="viewer__title">{title}</h1>}
+        {title && <h1 class="viewer__title serif">{title}</h1>}
+        {meta && <p class="viewer__sub">{meta}</p>}
       </div>
-
       <nav class="viewer__nav" aria-label="Photo navigation">
-        <a
-          class="icon-btn"
-          href={prev ? href(prev.slug) : undefined}
-          aria-label={t('photo.prev')}
-          aria-disabled={prev ? undefined : 'true'}
-          rel="prev">←</a
-        >
-        <a class="icon-btn" href={closeHref} aria-label={t('photo.close')}>✕</a>
-        <a
-          class="icon-btn"
-          href={next ? href(next.slug) : undefined}
-          aria-label={t('photo.next')}
-          aria-disabled={next ? undefined : 'true'}
-          rel="next">→</a
-        >
+        <a href={prev ? href(prev.slug) : undefined} aria-disabled={prev ? undefined : 'true'} aria-label={t('photo.prev')} rel="prev">←</a>
+        <a href={closeHref} aria-label={t('photo.close')} data-close>✕</a>
+        <a href={next ? href(next.slug) : undefined} aria-disabled={next ? undefined : 'true'} aria-label={t('photo.next')} rel="next">→</a>
       </nav>
-
-      {
-        exifRows.length > 0 && (
-          <dl class="viewer__exif mono">
-            {exifRows.map(([k, v]) => (
-              <div>
-                <dt>{k}</dt>
-                <dd>{v}</dd>
-              </div>
-            ))}
-          </dl>
-        )
-      }
     </div>
   </article>
 </Base>
@@ -113,11 +74,22 @@ const og = await getImage({ src: photo.image, width: 1200, format: 'jpg', qualit
     if (url) location.href = url;
   };
 
+  // 横並び・一覧から開いたときは「戻る」で閉じる（スクロール位置もそのまま戻る）
+  const close = () => {
+    const ref = document.referrer.startsWith(location.origin) ? new URL(document.referrer).pathname : '';
+    if (/^\/(en\/)?(photos\/)?$/.test(ref) && history.length > 1) history.back();
+    else go(viewer?.dataset.closeHref);
+  };
+  document.querySelector('a[data-close]')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    close();
+  });
+
   addEventListener('keydown', (e) => {
     if (!viewer || e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
     if (e.key === 'ArrowLeft') go(viewer.dataset.prev);
     else if (e.key === 'ArrowRight') go(viewer.dataset.next);
-    else if (e.key === 'Escape') go(viewer.dataset.close);
+    else if (e.key === 'Escape') close();
   });
 
   // スマホ：左右スワイプで前後の写真へ

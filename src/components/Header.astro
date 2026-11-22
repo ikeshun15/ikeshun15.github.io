@@ -1,5 +1,13 @@
 ---
-import StrawberryMark from './StrawberryMark.astro';
+/**
+ * ヘッダー：左に言語と昼／夜、中央にロゴ、右に三本線のメニューボタン。
+ * メニューを開くと、ボタンの位置から円が広がるように全画面のメニューが現れる。
+ * 項目を押すとメニューが閉じて、トップページのそのセクションへスクロールする。
+ */
+import Brand from './Brand.astro';
+import ThemeToggle from './ThemeToggle.astro';
+import SocialLinks from './SocialLinks.astro';
+import { getPalette } from '../lib/photos';
 import { localePath, otherLocale, useTranslations, type Locale } from '../i18n/ui';
 
 interface Props {
@@ -10,96 +18,157 @@ interface Props {
 const { lang, path } = Astro.props;
 const t = useTranslations(lang);
 const other = otherLocale(lang);
+const palette = await getPalette();
 
-const nav = [
-  { href: '/photos/', label: t('nav.photos') },
-  { href: '/gear/', label: t('nav.gear') },
+// メニューの項目。横並び・一覧のページでは、そのページの下のプロフィールへ。ほかのページからはトップへ
+const home = localePath(lang, '/');
+const base = path === '/' || path === '/photos/' ? localePath(lang, path) : home;
+const onPhotos = path === '/' || path.startsWith('/photos/');
+const items = [
+  { href: base, nav: 'photos', word: 'Photos', sub: t('menu.photosSub'), current: onPhotos },
+  { href: `${base}#about`, nav: 'about', word: 'About', sub: t('about.sub'), current: false },
+  { href: `${base}#history`, nav: 'history', word: 'History', sub: t('history.sub'), current: false },
+  { href: `${base}#gear`, nav: 'gear', word: 'Gear', sub: t('gear.sub'), current: false },
 ];
-const isCurrent = (href: string) => path.startsWith(href);
 ---
 
-<header class="site-header" data-site-header>
-  <a class="brand" href={localePath(lang, '/')} aria-label="Shun15 — Home">
-    <StrawberryMark size={14} />
-    <span class="brand__name">SHUN15</span>
+<header class="site-header" data-site-header data-palette={JSON.stringify(palette)}>
+  <div class="site-header__left">
+    <a class="lang-switch" href={localePath(other, path)} hreflang={other} lang={other} aria-label={t('lang.label')}>
+      {other === 'en' ? 'en' : 'ja'}
+    </a>
+    <ThemeToggle lang={lang} />
+  </div>
+
+  <a class="brand" href={home} aria-label="Shun15 — Home">
+    <Brand />
   </a>
 
   <div class="site-header__right">
-    <nav class="site-nav" aria-label={t('nav.label')}>
-      {
-        nav.map((item) => (
-          <a href={localePath(lang, item.href)} aria-current={isCurrent(item.href) ? 'page' : undefined}>
-            {item.label}
-          </a>
-        ))
-      }
-    </nav>
-
-    <a
-      class="lang-switch mono"
-      href={localePath(other, path)}
-      hreflang={other}
-      lang={other}
-      aria-label={t('lang.label')}
+    <button
+      class="menu-btn"
+      type="button"
+      aria-expanded="false"
+      aria-controls="site-menu"
+      aria-label={t('menu.open')}
+      data-label-open={t('menu.open')}
+      data-label-close={t('menu.close')}
+      data-menu-toggle
+      data-hover-color
     >
-      {other.toUpperCase()}
-    </a>
-
-    <button class="theme-toggle" type="button" aria-label={t('theme.toggle')} data-theme-toggle>
-      <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true">
-        <circle cx="10" cy="10" r="7.25" fill="none" stroke="currentColor" stroke-width="1.5"></circle>
-        <path d="M10 2.75a7.25 7.25 0 0 1 0 14.5z" fill="currentColor"></path>
-      </svg>
+      <span class="menu-btn__lines" aria-hidden="true"><span></span><span></span><span></span></span>
     </button>
   </div>
 </header>
 
+<div class="menu" id="site-menu" role="dialog" aria-modal="true" aria-label={t('menu.label')} data-menu inert>
+  <nav class="menu__nav" aria-label={t('nav.label')}>
+    <ol class="menu__list">
+      {
+        items.map((it, i) => (
+          <li style={`--i:${i}`}>
+            <a
+              class="menu__link"
+              href={it.href}
+              data-nav={it.nav}
+              data-menu-link
+              data-hover-color
+              aria-current={it.current ? 'page' : undefined}
+            >
+              <span class="menu__word">{it.word}</span>
+              <span class="menu__sub">{it.sub}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ol>
+  </nav>
+  <div class="menu__foot">
+    <SocialLinks label={t('links.label')} />
+  </div>
+</div>
+
 <script>
-  const header = document.querySelector<HTMLElement>('[data-site-header]');
-  const onScroll = () => header?.toggleAttribute('data-scrolled', window.scrollY > 8);
-  onScroll();
-  window.addEventListener('scroll', onScroll, { passive: true });
-
-  // ライト／ダーク切り替え。対応ブラウザではボタンから円が広がるように切り替える
+  // ---- ホバーの色：いま画面に見えている写真の色から選ぶ（見えていなければパレットを順番に）----
   const root = document.documentElement;
-  const button = document.querySelector<HTMLButtonElement>('[data-theme-toggle]');
-  const motionOK = () => !matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const header = document.querySelector<HTMLElement>('[data-site-header]');
+  const palette: string[] = JSON.parse(header?.dataset.palette ?? '[]');
+  let turn = 0;
+  let last = '';
 
-  function applyTheme(theme: string) {
-    root.dataset.theme = theme;
-    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'dark' ? '#0b0b0b' : '#f3f3f1');
-    try {
-      localStorage.setItem('theme', theme);
-    } catch {}
+  function visibleAccents() {
+    const found: string[] = [];
+    for (const el of document.querySelectorAll<HTMLElement>('[data-accent]')) {
+      const r = el.getBoundingClientRect();
+      if (r.bottom > 0 && r.top < innerHeight && r.right > 0 && r.left < innerWidth) found.push(el.dataset.accent!);
+    }
+    return [...new Set(found)];
   }
 
-  button?.addEventListener('click', () => {
-    const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
-    if (!document.startViewTransition || !motionOK()) {
-      applyTheme(next);
-      return;
-    }
+  function pick() {
+    const seen = visibleAccents();
+    const pool = seen.length ? seen : palette;
+    if (!pool.length) return '';
+    const options = pool.length > 1 ? pool.filter((c) => c !== last) : pool;
+    const color = seen.length ? options[Math.floor(Math.random() * options.length)] : options[turn++ % options.length];
+    last = color;
+    return color;
+  }
+
+  // ヘッダーのリンクと、ページ内の [data-hover-color]（SNS アイコン、メニューの項目など）が対象
+  document.querySelectorAll<HTMLElement>('.lang-switch, .brand, [data-hover-color]').forEach((el) =>
+    el.addEventListener('pointerenter', () => {
+      const color = pick();
+      if (color) root.style.setProperty('--hover-color', color);
+    }),
+  );
+
+  // ---- メニュー ----
+  const menu = document.querySelector<HTMLElement>('[data-menu]');
+  const button = document.querySelector<HTMLButtonElement>('[data-menu-toggle]');
+  const behind = () => [...document.querySelectorAll<HTMLElement>('main, .site-footer, .skip-link')];
+  const smooth = () => (matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth');
+
+  function openMenu() {
+    if (!menu || !button) return;
+    // ボタンの位置から円が広がる
     const r = button.getBoundingClientRect();
-    const x = r.left + r.width / 2;
-    const y = r.top + r.height / 2;
-    const end = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
-    root.classList.add('theme-vt');
-    const vt = document.startViewTransition(() => applyTheme(next));
-    vt.ready.then(() => {
-      root.animate(
-        { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${end}px at ${x}px ${y}px)`] },
-        { duration: 650, easing: 'cubic-bezier(.7, 0, .2, 1)', pseudoElement: '::view-transition-new(root)' },
-      );
-    });
-    vt.finished.finally(() => root.classList.remove('theme-vt'));
+    menu.style.setProperty('--mx', `${r.left + r.width / 2}px`);
+    menu.style.setProperty('--my', `${r.top + r.height / 2}px`);
+    root.classList.add('menu-open');
+    menu.inert = false;
+    behind().forEach((el) => (el.inert = true));
+    button.setAttribute('aria-expanded', 'true');
+    button.setAttribute('aria-label', button.dataset.labelClose ?? '');
+    menu.querySelector<HTMLElement>('[data-menu-link]')?.focus({ preventScroll: true });
+  }
+
+  function closeMenu(returnFocus = true) {
+    if (!menu || !button) return;
+    root.classList.remove('menu-open');
+    menu.inert = true;
+    behind().forEach((el) => (el.inert = false));
+    button.setAttribute('aria-expanded', 'false');
+    button.setAttribute('aria-label', button.dataset.labelOpen ?? '');
+    if (returnFocus) button.focus({ preventScroll: true });
+  }
+
+  button?.addEventListener('click', () => (root.classList.contains('menu-open') ? closeMenu() : openMenu()));
+  addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && root.classList.contains('menu-open')) closeMenu();
   });
 
-  // 明示的に選んでいなければ OS の設定に追従
-  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-    let stored = null;
-    try {
-      stored = localStorage.getItem('theme');
-    } catch {}
-    if (!stored) root.dataset.theme = e.matches ? 'dark' : 'light';
-  });
+  // 項目を押したら閉じて、同じページならそのセクションへスクロール（別のページなら移動）
+  menu?.querySelectorAll<HTMLAnchorElement>('[data-menu-link]').forEach((a) =>
+    a.addEventListener('click', (e) => {
+      const url = new URL(a.href);
+      if (url.pathname !== location.pathname) return closeMenu(false);
+      e.preventDefault();
+      closeMenu(false);
+      const target = url.hash ? document.getElementById(url.hash.slice(1)) : null;
+      history.replaceState(null, '', url.hash || url.pathname);
+      if (target) target.scrollIntoView({ behavior: smooth() });
+      else scrollTo({ top: 0, behavior: smooth() });
+    }),
+  );
 </script>

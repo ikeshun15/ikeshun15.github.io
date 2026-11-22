@@ -17,6 +17,12 @@ importers:
       '@fontsource-variable/noto-sans-jp':
         specifier: 5.3.1
         version: 5.3.1
+      '@fontsource/instrument-serif':
+        specifier: 5.3.0
+        version: 5.3.0
+      '@fontsource/shippori-mincho':
+        specifier: 5.3.0
+        version: 5.3.0
       astro:
         specifier: 6.4.8
         version: 6.4.8(@types/node@22.20.5)(rollup@4.68.8)(yaml@2.9.1)
@@ -33,6 +39,9 @@ importers:
       '@types/node':
         specifier: 22.20.5
         version: 22.20.5
+      simple-icons:
+        specifier: 16.36.0
+        version: 16.36.0
       typescript:
         specifier: 5.9.3
         version: 5.9.3
@@ -304,6 +313,12 @@ packages:
 
   '@fontsource-variable/noto-sans-jp@5.3.1':
     resolution: {integrity: sha512-/anGvJFc5y36f8DJ+3TSh2+KAvaRLA9PaLUMvneeY5s4j8m+8X4F3lE/sjTuG9YI5BX4sykvCk4TuJMG7ecMRQ==}
+
+  '@fontsource/instrument-serif@5.3.0':
+    resolution: {integrity: sha512-mDiaIg0u67sYV59fie92Wz4sM8UiVlbL7fLxnFPCKkX15DMASEnQTREbaP5S5/3DCcsoAOcQ0sV9E4AeY4QqYQ==}
+
+  '@fontsource/shippori-mincho@5.3.0':
+    resolution: {integrity: sha512-S41kRxQuubAaYss+LeXu0IOc02RQwsPaJbR1cWZx4VV15hXaYZViH3WAve9HpDVFqKYd/BVk86Bg7lp9ytV3KQ==}
 
   '@img/colour@1.1.0':
     resolution: {integrity: sha512-Td76q7j57o/tLVdgS746cYARfSyxk8iEfRxewL9h4OMzYhbW4TAcppl0mT4eyqXddh6L/jwoM75mo7ixa/pCeQ==}
@@ -1393,6 +1408,10 @@ packages:
     resolution: {integrity: sha512-imjLsVHgPuWhvpU3P+zOekvMYqnel7QmKsFC4Sn0fCuAvaaalBsxwKEsrU8Ko5BdFnZA6Go/8a0RzahS634UgA==}
     engines: {node: '>=20'}
 
+  simple-icons@16.36.0:
+    resolution: {integrity: sha512-+VNPPkqSOLidFeSgBKUWX4n50WPpDC09hav+BgS26anIF1oQOlGBb8LvwGR+6fYRjo+B6CiKzNBceMPkSVXANQ==}
+    engines: {node: '>=0.12.18'}
+
   sisteransi@2.0.0:
     resolution: {integrity: sha512-2WCqLdt12eN6ehLI50S2/ZxoowXU3DD1KVPRyVP0WEsFahrGZZmCdq1K59qjJljMRIDTwx1D9YaRK+hDneBUMg==}
     engines: {node: '>=20'}
@@ -2023,6 +2042,10 @@ snapshots:
   '@fontsource-variable/geist@5.3.0': {}
 
   '@fontsource-variable/noto-sans-jp@5.3.1': {}
+
+  '@fontsource/instrument-serif@5.3.0': {}
+
+  '@fontsource/shippori-mincho@5.3.0': {}
 
   '@img/colour@1.1.0': {}
 
@@ -3420,6 +3443,8 @@ snapshots:
       '@shikijs/types': 4.6.0
       '@shikijs/vscode-textmate': 10.1.0
       '@types/hast': 3.0.5
+
+  simple-icons@16.36.0: {}
 
   sisteransi@2.0.0: {}
 

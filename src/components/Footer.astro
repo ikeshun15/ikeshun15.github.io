@@ -9,12 +9,22 @@ interface Props {
 const { lang } = Astro.props;
 const t = useTranslations(lang);
 const year = new Date().getFullYear();
+
+// 上向きの矢印をドットで描く（ロゴと同じドットの表現）
+const ARROW = ['..#..', '.###.', '#.#.#', '..#..', '..#..'];
+const arrow = ARROW.flatMap((row, y) => [...row].map((c, x) => (c === '#' ? { x, y } : null))).filter(
+  (d): d is { x: number; y: number } => d !== null,
+);
 ---
 
-<footer class="site-footer mono">
+<footer class="site-footer">
   <span class="site-footer__copy">
-    <StrawberryMark size={10} />
+    <StrawberryMark size={9} />
     © {year} {site.name}
   </span>
-  <a href="#top" class="site-footer__top">{t('footer.top')} ↑</a>
+  <a href="#top" class="site-footer__top" aria-label={t('footer.top')} title={t('footer.top')} data-hover-color>
+    <svg viewBox="0 0 5 5" width="15" height="15" aria-hidden="true">
+      {arrow.map((d) => <circle cx={d.x + 0.5} cy={d.y + 0.5} r="0.4" style={`--i:${4 - d.y}`} />)}
+    </svg>
+  </a>
 </footer>

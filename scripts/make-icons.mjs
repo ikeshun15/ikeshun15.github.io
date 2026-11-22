@@ -1,19 +1,18 @@
 /**
  * favicon / apple-touch-icon / OGP 画像を生成する。
+ *   node scripts/make-icons.mjs [OGP に使う写真のパス]
  * ロゴ（src/lib/strawberry.js）やドットフォント（src/lib/dotfont.js）を変えたら再実行:
  *   node scripts/make-icons.mjs
  */
 import { writeFile } from 'node:fs/promises';
 import sharp from 'sharp';
 import { strawberryDots } from '../src/lib/strawberry.js';
-import { layoutText } from '../src/lib/dotfont.js';
 
 const OUT = new URL('../public/', import.meta.url);
 const BERRY = '#e5392b';
 const LEAF_LIGHT = '#111111';
 const LEAF_DARK = '#ececea';
 const BG_LIGHT = '#f3f3f1';
-const BG_DARK = '#0b0b0b';
 
 const { cols, rows, dots } = strawberryDots();
 
@@ -65,24 +64,35 @@ ${markCircles({ x0: (180 - cols * touchUnit) / 2, y0: 30, unit: touchUnit })}
 </svg>`;
 await sharp(Buffer.from(touchSvg)).png().toFile(new URL('apple-touch-icon.png', OUT).pathname);
 
-// og.png（1200×630）: ドットで描いた SHUN15
+// og.png（1200×630）: 写真が粒子から現れる途中のような点描。左ほど粒がまばらになる
+// 元にする写真は引数で指定（既定: src/photos/fireworks.jpg）
 const W = 1200;
 const H = 630;
-const text = layoutText(['SHUN15'], 4);
-const S = Math.min((W * 0.7) / text.cols, (H * 0.42) / text.rows);
-const tx0 = (W - (text.cols - 1) * S) / 2;
-const ty0 = (H - (text.rows - 1) * S) / 2;
-let og = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}"><rect width="${W}" height="${H}" fill="${BG_DARK}"/>`;
-for (let r = Math.ceil(-ty0 / S); r <= Math.floor((H - ty0) / S); r++) {
-  for (let c = Math.ceil(-tx0 / S); c <= Math.floor((W - tx0) / S); c++) {
-    const x = tx0 + c * S;
-    const y = ty0 + r * S;
-    const k = text.cells.get(`${c},${r}`);
-    if (k) og += `<circle cx="${x}" cy="${y}" r="${S * 0.38}" fill="${k === 2 ? BERRY : LEAF_DARK}"/>`;
-    else og += `<circle cx="${x}" cy="${y}" r="${Math.max(1, S * 0.06)}" fill="${LEAF_DARK}" fill-opacity="0.22"/>`;
+const source = new URL(`../${process.argv[2] ?? 'src/photos/fireworks.jpg'}`, import.meta.url);
+const ogCols = 150;
+const ogRows = Math.round((ogCols * H) / W);
+const S = W / ogCols;
+let og = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}"><rect width="${W}" height="${H}" fill="${BG_LIGHT}"/>`;
+try {
+  const { data } = await sharp(source.pathname).rotate().resize(ogCols, ogRows, { fit: 'cover' }).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+  let seed = 15;
+  const rnd = () => ((seed = (seed * 1664525 + 1013904223) % 4294967296) / 4294967296);
+  for (let y = 0; y < ogRows; y++) {
+    for (let x = 0; x < ogCols; x++) {
+      const u = x / (ogCols - 1);
+      const f = Math.min(1, Math.max(0, (u - 0.18) / 0.42));
+      if (rnd() > f * f * 0.9 + 0.1 * f) continue;
+      const i = (y * ogCols + x) * 3;
+      const jitter = (1 - f) * S * 1.6;
+      const cx = (x + 0.5) * S + (rnd() - 0.5) * jitter;
+      const cy = (y + 0.5) * S + (rnd() - 0.5) * jitter;
+      og += `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${(S * 0.46 * (0.45 + 0.55 * f)).toFixed(2)}" fill="rgb(${data[i]},${data[i + 1]},${data[i + 2]})"/>`;
+    }
   }
+} catch {
+  console.warn(`! ${source.pathname} を読めなかったため、写真なしの OGP 画像を作ります`);
 }
-og += markCircles({ x0: 56, y0: 52, unit: 6, leaf: LEAF_DARK });
+og += markCircles({ x0: 72, y0: H - 72 - rows * 7, unit: 7 });
 og += '</svg>';
 await sharp(Buffer.from(og)).png().toFile(new URL('og.png', OUT).pathname);
 

@@ -1,0 +1,28 @@
+---
+/**
+ * SNS のアイコン。Simple Icons（CC0）のパスをビルド時に埋め込む。
+ * ホバーすると、画面に見えている写真の色に変わる（--hover-color）。
+ */
+import { siFacebook, siGithub, siInstagram, siX } from 'simple-icons';
+import { links } from '../data/site';
+
+interface Props {
+  label: string;
+}
+const { label } = Astro.props;
+const icons = { x: siX, instagram: siInstagram, github: siGithub, facebook: siFacebook };
+---
+
+<ul class="social" aria-label={label}>
+  {
+    links.map((l) => (
+      <li>
+        <a href={l.href} target="_blank" rel="me noopener" aria-label={l.label} title={l.label} data-hover-color>
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+            <path d={icons[l.icon].path} />
+          </svg>
+        </a>
+      </li>
+    ))
+  }
+</ul>

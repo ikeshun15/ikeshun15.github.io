@@ -1,0 +1,22 @@
+---
+/**
+ * ヘッダーの「SHUN15」。5×7 のドット文字（「15」はイチゴの赤）。
+ * ホバーすると、ドットが左から写真の色に染まっていく（色は Header の --hover-color）。
+ */
+import StrawberryMark from './StrawberryMark.astro';
+import { site } from '../data/site';
+import { layoutText } from '../lib/dotfont.js';
+
+const { cols, rows, cells } = layoutText(['SHUN15'], 4);
+const dots = [...cells.entries()].map(([key, kind]) => {
+  const [x, y] = key.split(',').map(Number);
+  return { x, y, kind };
+});
+---
+
+<span class="brand-mark">
+  <StrawberryMark size={11} />
+  <svg class="brand-mark__dots" viewBox={`0 0 ${cols} ${rows}`} height="12" aria-label={site.name} role="img">
+    {dots.map((d) => <circle cx={d.x + 0.5} cy={d.y + 0.5} r="0.4" class={d.kind === 2 ? 'is-accent' : undefined} style={`--i:${d.x}`} />)}
+  </svg>
+</span>
