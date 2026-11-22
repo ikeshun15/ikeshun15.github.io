@@ -14,7 +14,6 @@
 
   --font-sans: 'Geist Variable', 'Noto Sans JP Variable', system-ui, -apple-system, 'Hiragino Sans', sans-serif;
   --font-serif: 'Instrument Serif', 'Shippori Mincho', 'Hiragino Mincho ProN', 'Yu Mincho', serif;
-  --font-num: 'Geist Mono Variable', ui-monospace, 'SFMono-Regular', monospace;
 
   --pad: clamp(16px, 4.4vw, 64px);
   --header-h: 64px;
