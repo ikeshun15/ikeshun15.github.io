@@ -114,7 +114,7 @@ const dots = await getDotColors(45);
   </head>
   <body data-dots={dots}>
     <a class="skip-link" href="#main">{t('skip')}</a>
-    <Header lang={lang} path={path} />
+    <Header lang={lang} path={path} noAlternates={noAlternates} />
     <main id="main">
       <slot />
     </main>

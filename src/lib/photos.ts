@@ -269,20 +269,8 @@ export async function getPalette() {
   return unique.length ? unique : ['hsl(5 76% 53%)'];
 }
 
-/**
- * 写真を縦横に区切り、区画ごとの色を返す（読み込み中のドットに使う）。
- * 区画の数はおよそ target 個。u, v は区画の中心（0〜1）
- */
-const mosaicCache = new Map<string, ReturnType<typeof makeMosaic>>();
-
-/** 写真を cols×rows に区切った区画ごとの色（同じ写真・同じ細かさはビルド中に一度だけ計算する） */
-export function getMosaic(photo: Photo, target = 15) {
-  const key = `${photo.file}:${target}`;
-  if (!mosaicCache.has(key)) mosaicCache.set(key, makeMosaic(photo, target));
-  return mosaicCache.get(key)!;
-}
-
-async function makeMosaic(photo: Photo, target: number) {
+/** 写真を縦横に区切り（およそ target 個）、区画ごとの色を返す。u, v は区画の中心（0〜1）。ドットの色選びに使う */
+async function getMosaic(photo: Photo, target: number) {
   const cols = Math.max(2, Math.round(Math.sqrt(target * photo.ar)));
   const rows = Math.max(2, Math.round(target / cols));
   const abs = path.join(process.cwd(), 'src/photos', photo.file);

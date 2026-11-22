@@ -15,8 +15,10 @@ interface Props {
   lang: Locale;
   /** 言語プレフィックスを除いたパス（例: "/photos/"） */
   path: string;
+  /** もう一方の言語に同じページが無い（404 など）。言語の切り替えはトップへ */
+  noAlternates?: boolean;
 }
-const { lang, path } = Astro.props;
+const { lang, path, noAlternates = false } = Astro.props;
 const t = useTranslations(lang);
 const other = otherLocale(lang);
 const palette = await getPalette();
@@ -38,7 +40,7 @@ const items = [
 <div class="header-frost" aria-hidden="true"></div>
 <header class="site-header" data-site-header data-palette={JSON.stringify(palette)}>
   <div class="site-header__left">
-    <a class="lang-switch" href={localePath(other, path)} hreflang={other} lang={other} aria-label={t('lang.label')}>
+    <a class="lang-switch" href={localePath(other, noAlternates ? '/' : path)} hreflang={other} lang={other} aria-label={t('lang.label')}>
       {other === 'en' ? 'en' : 'ja'}
     </a>
     <ThemeToggle lang={lang} />
@@ -161,10 +163,16 @@ const items = [
   addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && root.classList.contains('menu-open')) closeMenu();
   });
+  // メニューを開いたままロゴや言語のリンクで移動しても、「戻る」で開いたままのページに戻らないように
+  addEventListener('pagehide', () => {
+    if (root.classList.contains('menu-open')) closeMenu(false);
+  });
 
   // 項目を押したら閉じて、同じページならそのセクションへスクロール（別のページなら移動）
   menu?.querySelectorAll<HTMLAnchorElement>('[data-menu-link]').forEach((a) =>
     a.addEventListener('click', (e) => {
+      // 新しいタブで開く操作（Ctrl／⌘＋クリックなど）は、ブラウザに任せる
+      if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
       const url = new URL(a.href);
       if (url.pathname !== location.pathname) return closeMenu(false);
       e.preventDefault();

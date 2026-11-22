@@ -81,16 +81,22 @@ const og = await getImage({ src: photo.image, width: 1200, format: 'jpg', qualit
     else go(viewer?.dataset.closeHref);
   };
   document.querySelector('a[data-close]')?.addEventListener('click', (e) => {
+    // 新しいタブで開く操作（Ctrl／⌘＋クリックなど）は、ブラウザに任せる
+    const m = e as MouseEvent;
+    if (m.button !== 0 || m.metaKey || m.ctrlKey || m.shiftKey || m.altKey) return;
     e.preventDefault();
     close();
   });
 
   addEventListener('keydown', (e) => {
     if (!viewer || e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
+    // メニューを開いている間のキー操作はメニューのもの（Esc はメニューを閉じるだけ）。
+    // メニュー側が先に閉じてしまう前に判断できるよう、このリスナーは先に（capture で）受け取る
+    if (document.documentElement.classList.contains('menu-open')) return;
     if (e.key === 'ArrowLeft') go(viewer.dataset.prev);
     else if (e.key === 'ArrowRight') go(viewer.dataset.next);
     else if (e.key === 'Escape') close();
-  });
+  }, true);
 
   // スマホ：左右スワイプで前後の写真へ
   const stage = document.querySelector<HTMLElement>('[data-viewer-stage]');

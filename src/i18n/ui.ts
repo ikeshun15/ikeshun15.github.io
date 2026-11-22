@@ -56,8 +56,7 @@ export const ui = {
 export type UIKey = keyof (typeof ui)['ja'];
 
 export function useTranslations(lang: Locale) {
-  return (key: UIKey, vars: Record<string, string | number> = {}) =>
-    (ui[lang][key] as string).replace(/\{(\w+)\}/g, (_, k) => String(vars[k] ?? ''));
+  return (key: UIKey): string => ui[lang][key];
 }
 
 /** 言語ごとのパスを返す。ja はルート、en は /en 配下 */

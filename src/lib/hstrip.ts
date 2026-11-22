@@ -61,6 +61,21 @@ export function mountHStrip(section: HTMLElement) {
     { passive: false },
   );
 
+  // キーボード（Tab）で画面の外の写真に移ったとき：ブラウザが固定部分を勝手に横へずらすのを戻し、
+  // その写真が見える位置までページをスクロールする
+  track.addEventListener('focusin', (e) => {
+    sticky.scrollLeft = 0;
+    viewport.scrollLeft = 0;
+    const item = (e.target as HTMLElement).closest<HTMLElement>('li');
+    if (!item || !maxShift) return;
+    const r = item.getBoundingClientRect();
+    if (r.left >= 0 && r.right <= window.innerWidth) return;
+    const pad = parseFloat(getComputedStyle(track).paddingLeft) || 0;
+    const shift = Math.min(maxShift, Math.max(0, item.offsetLeft - pad));
+    const top = section.getBoundingClientRect().top + window.scrollY;
+    window.scrollTo({ top: top + (shift / maxShift) * range });
+  });
+
   window.addEventListener('scroll', onScroll, { passive: true });
   new ResizeObserver(measure).observe(viewport);
   measure();

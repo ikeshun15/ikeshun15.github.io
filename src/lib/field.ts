@@ -264,7 +264,9 @@ function compile(gl: WebGLRenderingContext, type: number, src: string) {
 
 async function loadImage(img: HTMLImageElement) {
   img.loading = 'eager';
-  if (!(img.complete && img.naturalWidth)) {
+  // 読み込みに失敗している画像は、待っても load も error も来ない
+  if (img.complete && !img.naturalWidth) throw new Error('image');
+  if (!img.complete) {
     await new Promise<void>((resolve, reject) => {
       img.addEventListener('load', () => resolve(), { once: true });
       img.addEventListener('error', () => reject(new Error('image')), { once: true });
@@ -390,7 +392,11 @@ export function mountField() {
   };
 
   let layers: Layer[] = [];
+  /** layers を作るときに選んだ写真（読み込めなかった写真も含む。選び直すかどうかの比較に使う） */
+  let prepared: HTMLImageElement[] = [];
   let state: 'idle' | 'preparing' | 'ready' = 'idle';
+  /** WebGL が使えなくなった（描画をやめて、写真をそのまま見せる） */
+  let dead = false;
   let token = 0;
   let scrollS = 0;
   let introS = 0;
@@ -436,7 +442,7 @@ export function mountField() {
       return inX(r) && r.bottom > top - vh && r.top < top;
     });
   }
-  const sameSet = (imgs: HTMLImageElement[]) => imgs.length === layers.length && imgs.every((img, i) => img === layers[i].img);
+  const sameSet = (imgs: HTMLImageElement[]) => imgs.length === prepared.length && imgs.every((img, i) => img === prepared[i]);
 
   // ---- 写真を、ドットのデータにする ----
   async function prepare(imgs: HTMLImageElement[]) {
@@ -445,7 +451,8 @@ export function mountField() {
     const sampled: { img: HTMLImageElement; cols: number; rows: number; px: Uint8ClampedArray }[] = [];
     try {
       for (const img of imgs) {
-        await loadImage(img);
+        // 読み込めない写真は飛ばす（ほかの写真だけでドットを作る）
+        if (!(await loadImage(img).then(() => true, () => false))) continue;
         const w = img.clientWidth;
         const h = img.clientHeight;
         if (!w || !h) continue;
@@ -463,7 +470,7 @@ export function mountField() {
       if (mine === token) state = 'idle';
       return;
     }
-    if (mine !== token) return;
+    if (mine !== token || dead) return;
 
     // 写真をまたいで、色の鮮やかな粒ほど上の順位に（少しだけ偶然も混ぜる）
     const total = sampled.reduce((n, l) => n + l.cols * l.rows, 0);
@@ -515,6 +522,7 @@ export function mountField() {
     });
     layers.forEach((l) => gl!.deleteBuffer(l.buffer));
     layers = next;
+    prepared = imgs;
     state = 'ready';
     update();
   }
@@ -544,9 +552,21 @@ export function mountField() {
         if (!sameSet(wanted())) state = 'idle';
       }
       if (now === 0) checked = false;
-      if (state === 'idle' && !intro && top < vh * 2.5) prepare(wanted());
+      if (state === 'idle' && !intro && top < vh * 2.5) prepare(wanted()).catch(fail);
     }
     kick();
+  }
+
+  /** 途中で描けなくなったら、演出をやめて写真をそのまま見せる */
+  function fail(err?: unknown) {
+    if (dead) return;
+    dead = true;
+    if (err) console.warn('[field] ドットの演出を止めました', err);
+    cancelAnimationFrame(raf);
+    setDissolve(-1);
+    intro = null;
+    endLoading();
+    canvas.remove();
   }
 
   function setDissolve(v: number) {
@@ -586,7 +606,7 @@ export function mountField() {
   }
 
   function kick() {
-    if (!raf && !document.hidden) raf = requestAnimationFrame(frame);
+    if (!raf && !dead && !document.hidden) raf = requestAnimationFrame(frame);
   }
 
   function bind(buffer: WebGLBuffer) {
@@ -603,6 +623,7 @@ export function mountField() {
 
   function frame(now: number) {
     raf = 0;
+    if (dead) return;
     const dt = now - lastFrame;
     lastFrame = now;
     clock += Math.min(dt, 50) / 1000;
@@ -717,12 +738,14 @@ export function mountField() {
     raf = 0;
   });
   new ResizeObserver(resize).observe(canvas);
+  // GPU の都合で WebGL が失われることがある（長時間の放置、メモリ不足など）
+  canvas.addEventListener('webglcontextlost', () => fail());
   resize();
 
   if (intro) {
     const imgs = wanted();
     const done = () => intro && (intro.ready = true);
-    if (imgs.length) prepare(imgs).then(done, done);
+    if (imgs.length) prepare(imgs).then(done, (err) => (done(), fail(err)));
     else done();
     kick();
   }

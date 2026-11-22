@@ -38,6 +38,9 @@ jobs:
           restore-keys: |
             astro-${{ hashFiles('pnpm-lock.yaml') }}-
 
+      # 型と、中身（src/content/*.yaml）の書き方を確かめてから組み立てる
+      - run: pnpm check
+
       # build には GPS チェック（scripts/check-exif.mjs）も含まれる
       - run: pnpm build
 
