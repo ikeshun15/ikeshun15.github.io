@@ -7,5 +7,5 @@ export const site = {
   name: 'Shun15',
   url: 'https://ikeshun15.github.io',
   /** Google Analytics 4 の測定ID（例: "G-XXXXXXXXXX"）。空なら計測タグを出力しない */
-  gaMeasurementId: '',
+  gaMeasurementId: 'G-VTLNESNVVP',
 };

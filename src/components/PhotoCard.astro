@@ -3,7 +3,7 @@
  * 写真1枚。横並びでは高さ（--card-h）から幅が決まり、一枚ずつ・一覧では幅いっぱいに広がる。
  */
 import { Image } from 'astro:assets';
-import { photoTitle, type Photo } from '../lib/photos';
+import { photoDescription, photoTitle, type Photo } from '../lib/photos';
 import { localePath, useTranslations, type Locale } from '../i18n/ui';
 
 interface Props {
@@ -16,6 +16,7 @@ interface Props {
 const { photo, lang, sizes, eager = false } = Astro.props;
 const t = useTranslations(lang);
 const title = photoTitle(photo, lang) || t('photo.untitled');
+const alt = photoDescription(photo, lang) || title;
 ---
 
 <figure class="pcard" data-slug={photo.slug} data-accent={photo.accent ?? undefined} style={`--ar:${photo.ar.toFixed(4)};--c:${photo.color}`}>
@@ -26,7 +27,7 @@ const title = photoTitle(photo, lang) || t('photo.untitled');
       sizes={sizes}
       format="webp"
       quality={80}
-      alt={title}
+      alt={alt}
       loading={eager ? 'eager' : 'lazy'}
       decoding="async"
       class="pcard__img"

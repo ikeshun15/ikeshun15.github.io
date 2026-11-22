@@ -1024,8 +1024,21 @@ main,
 }
 
 .gear .cards {
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  /* 広い画面は --cols 列（GearBody.astro がカードの数から決める）、中くらいは 2 列、スマホは 1 列 */
+  grid-template-columns: repeat(var(--cols, 3), minmax(0, 1fr));
   text-align: left;
+}
+
+@media (max-width: 1000px) {
+  .gear .cards {
+    grid-template-columns: repeat(min(var(--cols, 3), 2), minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .gear .cards {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .gear .card {

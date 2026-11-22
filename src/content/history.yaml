@@ -3,19 +3,19 @@
 #   period … 期間（例: 2022.04 — / 2018.04 — 2022.03）
 #   title  … 学校名・会社名など
 #   note   … 学部・役割など（なくてもよい）
-#   tags   … 小さなタグ（なくてもよい）
+#   tags   … 小さなタグ（なくてもよい。例: tags: [Python, 画像処理]）
 #   draft  … true のあいだは、手元（pnpm dev）でだけ表示して、公開するサイトには出さない
 #
 # 公開できる項目がひとつもないときは、History のセクションとメニューの項目が自動で消える
-# ↓ いまは例（下書き）。本当の経歴に書き換えて、draft の行を消すと公開される
 
-- period: 2022.04 —
-  title: { ja: 〇〇株式会社, en: 〇〇 Inc. }
-  note: { ja: ソフトウェアエンジニア, en: Software Engineer }
-  tags: [Python]
-  draft: true
+- period: 2021.04 —
+  title: { ja: 長岡市内の企業, en: A company in Nagaoka }
+  note: { ja: エンジニア, en: Engineer }
 
-- period: 2018.04 — 2022.03
-  title: { ja: 〇〇大学 〇〇学部, en: 〇〇 University }
-  note: { ja: 〇〇を専攻, en: B.S. in 〇〇 }
-  draft: true
+- period: 2019.04 — 2021.03
+  title: { ja: 山形大学 工学部, en: "Yamagata University, Faculty of Engineering" }
+  note: { ja: 情報・エレクトロニクス学科, en: Department of Informatics and Electronics }
+
+- period: 2014.04 — 2019.03
+  title: { ja: 長岡工業高等専門学校, en: "National Institute of Technology, Nagaoka College" }
+  note: { ja: 電気電子システム工学科, en: Department of Electrical and Electronic Systems Engineering }

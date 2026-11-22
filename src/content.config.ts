@@ -24,6 +24,9 @@ const yamlObject = (path: string, id: string) =>
   file(path, { parser: (text) => [{ id, ...(parse(text, { schema: 'failsafe' }) as Record<string, unknown>) }] });
 
 const l10n = z.object({ ja: z.string(), en: z.string() });
+/** 日英で同じなら文字だけ、違うなら { ja, en } */
+const text = z.union([z.string(), l10n]);
+const link = z.union([z.url(), z.object({ ja: z.url(), en: z.url() })]);
 const flag = z.stringbool().default(false);
 
 export const collections = {
@@ -65,9 +68,9 @@ export const collections = {
     schema: z.object({
       order: z.number(),
       category: l10n,
-      name: z.string(),
-      model: z.string().optional(),
-      href: z.url().optional(),
+      name: text,
+      model: text.optional(),
+      href: link.optional(),
       sponsored: flag,
     }),
   }),

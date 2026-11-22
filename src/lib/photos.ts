@@ -16,6 +16,8 @@ type Title = { ja?: string; en?: string };
 
 interface MetaEntry {
   title?: Title | string;
+  /** 写真の説明（画像の代替テキストと、写真ページを共有したときの説明文に使う） */
+  description?: Title | string;
   /** トップページに載せる */
   featured?: boolean;
   /** 小さいほど先頭。未指定は撮影日の新しい順 */
@@ -44,6 +46,7 @@ export interface Photo {
   /** 縦横比 (width / height)。EXIF の回転を考慮済み */
   ar: number;
   title: Title;
+  description: Title;
   /** "2024.08.03" 形式。不明なら null */
   date: string | null;
   /** "2024-08-03T19:30:00" 形式（撮影地のローカル時刻）。不明なら空文字 */
@@ -195,8 +198,9 @@ async function loadPhoto(key: string, image: ImageMetadata): Promise<Photo | nul
   const w = (rotated ? info.height : info.width) ?? image.width;
   const h = (rotated ? info.width : info.height) ?? image.height;
   const date = parseExifDate(raw?.DateTimeOriginal ?? raw?.CreateDate);
-  const title: Title =
-    typeof entry.title === 'string' ? { ja: entry.title, en: entry.title } : (entry.title ?? {});
+  const l10n = (v?: Title | string): Title => (typeof v === 'string' ? { ja: v, en: v } : (v ?? {}));
+  const title = l10n(entry.title);
+  const description = l10n(entry.description);
 
   return {
     slug: toSlug(file),
@@ -204,6 +208,7 @@ async function loadPhoto(key: string, image: ImageMetadata): Promise<Photo | nul
     image,
     ar: w / h,
     title,
+    description,
     date: date?.[0] ?? null,
     sortKey: date?.[1] ?? '',
     exif: formatExif(raw),
@@ -253,6 +258,11 @@ export async function getFeaturedPhotos(limit = 8) {
 
 export function photoTitle(p: Photo, lang: Locale) {
   return p.title[lang] ?? p.title.ja ?? p.title.en ?? '';
+}
+
+/** 写真の説明。なければタイトル（画像の代替テキストに使う） */
+export function photoDescription(p: Photo, lang: Locale) {
+  return p.description[lang] ?? p.description.ja ?? p.description.en ?? photoTitle(p, lang);
 }
 
 /** "Sony α7 · 50mm · f/1.8 · 1/250s · ISO 100" のような一行表記 */

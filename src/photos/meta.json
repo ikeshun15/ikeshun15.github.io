@@ -1,13 +1,124 @@
 {
   "photos": {
-    "fireworks.jpg": {"title": {"ja": "花火", "en": "Fireworks"}, "featured": true, "order": 1},
-    "sample-04-sea.jpg": {"title": {"ja": "サンプル — 海", "en": "Sample — Sea"}, "featured": true, "order": 2},
-    "sample-03-fog.jpg": {"title": {"ja": "サンプル — 霧", "en": "Sample — Fog"}, "featured": true, "order": 3},
-    "sample-01-dusk.jpg": {"title": {"ja": "サンプル — 夕暮れ", "en": "Sample — Dusk"}, "featured": true, "order": 4},
-    "sample-07-snow.jpg": {"title": {"ja": "サンプル — 雪", "en": "Sample — Snow"}, "featured": true, "order": 5},
-    "sample-06-leaf.jpg": {"title": {"ja": "サンプル — 木漏れ日", "en": "Sample — Leaves"}, "featured": true, "order": 6},
-    "sample-05-neon.jpg": {"title": {"ja": "サンプル — 夜の街", "en": "Sample — Neon"}, "featured": true, "order": 7},
-    "sample-02-bokeh.jpg": {"title": {"ja": "サンプル — ボケ", "en": "Sample — Bokeh"}, "featured": true, "order": 8},
-    "sample-08-moon.jpg": {"title": {"ja": "サンプル — 月", "en": "Sample — Moon"}, "featured": true, "order": 9}
+    "fireworks.jpg": {
+      "title": {
+        "ja": "長岡花火 2023",
+        "en": "Nagaoka Fireworks 2023"
+      },
+      "description": {
+        "ja": "長岡まつり大花火大会（2023年）。夜空いっぱいに広がる花火と、信濃川に架かる橋。",
+        "en": "The Nagaoka Fireworks Festival, 2023. Fireworks filling the night sky over a bridge across the Shinano River."
+      },
+      "featured": true,
+      "order": 1
+    },
+    "2025-07-yokoteyama-milky-way.jpg": {
+      "title": {
+        "ja": "横手山ドライブインの天の川",
+        "en": "The Milky Way over Yokoteyama Drive-in"
+      },
+      "description": {
+        "ja": "志賀高原・横手山ドライブインの上に広がる、夏の天の川。",
+        "en": "The summer Milky Way above the Yokoteyama Drive-in, Shiga Kogen."
+      },
+      "featured": true,
+      "order": 2
+    },
+    "2026-10-cosmos-dusk.jpg": {
+      "title": {
+        "ja": "夕暮れのコスモス",
+        "en": "Cosmos at Dusk"
+      },
+      "description": {
+        "ja": "夕日に向かって咲きそろう、コスモス畑。",
+        "en": "A field of cosmos facing the setting sun."
+      },
+      "featured": true,
+      "order": 3
+    },
+    "2025-07-kusatsu-yubatake.jpg": {
+      "title": {
+        "ja": "夜の湯畑",
+        "en": "Yubatake at Night"
+      },
+      "description": {
+        "ja": "湯けむりの立ちのぼる、夜の草津温泉・湯畑。",
+        "en": "Steam rising over the Yubatake hot spring field in Kusatsu Onsen at night."
+      },
+      "featured": true,
+      "order": 4
+    },
+    "2026-04-blue-impulse.jpg": {
+      "title": {
+        "ja": "小千谷のブルーインパルス",
+        "en": "Blue Impulse over Ojiya"
+      },
+      "description": {
+        "ja": "小千谷の空を、白いスモークを引いて飛ぶブルーインパルスの6機。",
+        "en": "Six Blue Impulse jets trailing white smoke across the sky over Ojiya."
+      },
+      "featured": true,
+      "order": 5
+    },
+    "2026-09-kawagoe-toki-no-kane.jpg": {
+      "title": {
+        "ja": "夜明け前の時の鐘",
+        "en": "Toki no Kane before Dawn"
+      },
+      "description": {
+        "ja": "人通りのない、夜明け前の川越・時の鐘。",
+        "en": "Kawagoe's Toki no Kane bell tower on an empty street before dawn."
+      },
+      "featured": true,
+      "order": 6
+    },
+    "2026-09-nagatoro-cat.jpg": {
+      "title": {
+        "ja": "長瀞のひなたぼっこ",
+        "en": "Sunbathing in Nagatoro"
+      },
+      "description": {
+        "ja": "かき氷屋さんの窓辺で、ひなたぼっこをする猫。",
+        "en": "A cat basking on the window ledge of a shaved-ice shop in Nagatoro."
+      },
+      "featured": true,
+      "order": 7
+    },
+    "2026-10-autumn-valley.jpg": {
+      "title": {
+        "ja": "谷の紅葉",
+        "en": "Autumn in the Valley"
+      },
+      "description": {
+        "ja": "色づいた木々と、沢の流れる山の谷。",
+        "en": "A mountain valley streaked with autumn colors and streams."
+      },
+      "featured": true,
+      "order": 8
+    },
+    "2026-04-sakura-mazda2.jpg": {
+      "title": {
+        "ja": "桜と MAZDA2",
+        "en": "MAZDA2 under the Cherry Blossoms"
+      },
+      "description": {
+        "ja": "川沿いの桜の下で。奥には鉄橋と、雪の残る山並み。",
+        "en": "Under riverside cherry blossoms, with a truss bridge and snow-capped mountains beyond."
+      },
+      "featured": true,
+      "order": 9
+    },
+    "2026-01-ski-lift.jpg": {
+      "title": {
+        "ja": "青空のゲレンデ",
+        "en": "Bluebird Day on the Slopes"
+      },
+      "description": {
+        "ja": "雪のゲレンデと、青空へ向かうリフト。",
+        "en": "A snowy slope and a chairlift climbing into a blue sky."
+      },
+      "featured": true,
+      "order": 10
+    }
   }
 }

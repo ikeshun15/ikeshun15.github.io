@@ -1,27 +1,36 @@
 # Gear（道具）：いま使っているものだけを書く。ここに書いた順に並ぶ
 #
-#   category  … 種類（例: カメラ / レンズ / PC）
-#   name      … 名前
-#   model     … 型番（なくてもよい）
-#   href      … リンク（なくてもよい）
+#   category  … 種類（例: カメラ / スマートフォン）
+#   name      … 名前（日英で同じなら文字だけ、違うなら { ja: …, en: … }）
+#   model     … 型番・別名（なくてもよい。書き方は name と同じ）
+#   href      … 公式サイトなどへのリンク（なくてもよい。日英で分けるなら { ja: …, en: … }）
 #   sponsored … アフィリエイトなど広告のリンクなら true（セクションの下に広告の表記が出る）
 #
 # ひとつもないときは、Gear のセクションとメニューの項目が自動で消える
 
-- category: { ja: レンズ, en: Lens }
-  name: Sony FE 50mm F1.8
-  model: SEL50F18F
-  href: https://hb.afl.rakuten.co.jp/ichiba/3627cbd1.c3acdb20.3627cbd2.0cde1802/?pc=https%3A%2F%2Fitem.rakuten.co.jp%2Fmapcamera%2F4548736033078%2F&link_type=picttext&ut=eyJwYWdlIjoiaXRlbSIsInR5cGUiOiJwaWN0dGV4dCIsInNpemUiOiIxMjh4MTI4IiwibmFtIjoxLCJuYW1wIjoicmlnaHQiLCJjb20iOjEsImNvbXAiOiJkb3duIiwicHJpY2UiOjEsImJvciI6MSwiY29sIjoxLCJiYnRuIjoxLCJwcm9kIjowLCJhbXAiOmZhbHNlfQ%3D%3D
-  sponsored: true
+- category: { ja: スマートフォン, en: Phone }
+  name: Google Pixel 10 Pro
+  href:
+    ja: https://store.google.com/jp/product/pixel_10_pro?hl=ja
+    en: https://store.google.com/product/pixel_10_pro
 
-- category: { ja: レンズ, en: Lens }
-  name: Tamron 28-200mm F/2.8-5.6 Di III RXD
-  model: A071 · Sony E
-  href: https://hb.afl.rakuten.co.jp/ichiba/3627caaf.8fdae5ec.3627cab0.ad16990a/?pc=https%3A%2F%2Fitem.rakuten.co.jp%2Femedama%2F4960371006703%2F&link_type=picttext&ut=eyJwYWdlIjoiaXRlbSIsInR5cGUiOiJwaWN0dGV4dCIsInNpemUiOiIxMjh4MTI4IiwibmFtIjoxLCJuYW1wIjoicmlnaHQiLCJjb20iOjEsImNvbXAiOiJkb3duIiwicHJpY2UiOjEsImJvciI6MSwiY29sIjoxLCJiYnRuIjoxLCJwcm9kIjowLCJhbXAiOmZhbHNlfQ%3D%3D
-  sponsored: true
+- category: { ja: スマートフォン, en: Phone }
+  name: Google Pixel 10 Pro Fold
+  href:
+    ja: https://store.google.com/jp/product/pixel_10_pro_fold?hl=ja
+    en: https://store.google.com/product/pixel_10_pro_fold
 
-- category: { ja: PC, en: PC }
-  name: GALAKURO GeForce RTX 3060 12GB
-  model: GG-RTX3060-E12GB/OC/DF
-  href: https://hb.afl.rakuten.co.jp/ichiba/3627ca19.b6eb194e.3627ca1a.862cd768/?pc=https%3A%2F%2Fitem.rakuten.co.jp%2Fjism%2F4988755057660-44-57761-n%2F&link_type=picttext&ut=eyJwYWdlIjoiaXRlbSIsInR5cGUiOiJwaWN0dGV4dCIsInNpemUiOiIxMjh4MTI4IiwibmFtIjoxLCJuYW1wIjoicmlnaHQiLCJjb20iOjEsImNvbXAiOiJkb3duIiwicHJpY2UiOjEsImJvciI6MSwiY29sIjoxLCJiYnRuIjoxLCJwcm9kIjowLCJhbXAiOmZhbHNlfQ%3D%3D
-  sponsored: true
+- category: { ja: カメラ, en: Camera }
+  name: Sony α7 III
+  model: ILCE-7M3
+  href:
+    ja: https://www.sony.jp/ichigan/products/ILCE-7M3/
+    en: https://www.sony.ca/en/interchangeable-lens-cameras/products/ilce-7m3-body-kit
+
+# 発売終了品なので、キヤノン公式の「キヤノンカメラミュージアム」のページへ
+- category: { ja: カメラ, en: Camera }
+  name: Canon EOS Kiss X7
+  model: { ja: "", en: EOS Rebel SL1 / EOS 100D }
+  href:
+    ja: https://global.canon/ja/c-museum/product/dslr815.html
+    en: https://global.canon/en/c-museum/product/dslr815.html

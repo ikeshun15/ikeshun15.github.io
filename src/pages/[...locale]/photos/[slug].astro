@@ -1,7 +1,7 @@
 ---
 import { Image, getImage } from 'astro:assets';
 import Base from '../../../layouts/Base.astro';
-import { exifLine, getPhotos, photoTitle } from '../../../lib/photos';
+import { exifLine, getPhotos, photoDescription, photoTitle } from '../../../lib/photos';
 import { localePath, localeStaticPaths, useTranslations, type Locale } from '../../../i18n/ui';
 
 export async function getStaticPaths() {
@@ -22,6 +22,7 @@ const prev = photos[index - 1];
 const next = photos[index + 1];
 
 const title = photoTitle(photo, lang);
+const description = photoDescription(photo, lang);
 const href = (slug: string) => localePath(lang, `/photos/${slug}/`);
 const closeHref = `${localePath(lang, '/photos/')}#p-${photo.slug}`;
 const meta = [photo.date, exifLine(photo.exif)].filter(Boolean).join(' · ');
@@ -29,7 +30,7 @@ const meta = [photo.date, exifLine(photo.exif)].filter(Boolean).join(' · ');
 const og = await getImage({ src: photo.image, width: 1200, format: 'jpg', quality: 80 });
 ---
 
-<Base lang={lang} path={`/photos/${photo.slug}/`} title={title || t('photos.title')} image={og.src}>
+<Base lang={lang} path={`/photos/${photo.slug}/`} title={title || t('photos.title')} image={og.src} description={description || undefined}>
   <article
     class="viewer"
     data-viewer
@@ -46,7 +47,7 @@ const og = await getImage({ src: photo.image, width: 1200, format: 'jpg', qualit
         sizes="(max-width: 640px) 100vw, 86vw"
         format="webp"
         quality={82}
-        alt={title || t('photo.untitled')}
+        alt={description || t('photo.untitled')}
         loading="eager"
         fetchpriority="high"
         class="viewer__img"
