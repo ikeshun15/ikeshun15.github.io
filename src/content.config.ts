@@ -42,7 +42,7 @@ export const collections = {
   profile: defineCollection({
     loader: yamlObject('src/content/profile.yaml', 'profile'),
     schema: z.object({
-      catch: l10n,
+      catch: l10n.optional(),
       name: z.string(),
       bio: z.object({ ja: z.array(z.string()), en: z.array(z.string()) }),
       facts: z.array(z.object({ label: l10n, value: l10n, href: z.string().optional() })).default([]),

@@ -1,24 +1,35 @@
 # About（わたしについて）の中身
 
-# 自己紹介の一言（名前の下に、明朝体で大きめに出る。「。」「. 」で改行される）
-catch:
-  ja: エンジニア。光を一枚ずつ、集めています。
-  en: Engineer. Collecting light, one frame at a time.
-
-# 名前（自己紹介のいちばん上に小さく出る）
+# 名前（自己紹介の見出し）
 name: Shun15
 
-# 自己紹介の本文（一言の下に出る）。1 項目が 1 段落。一言と同じことは書かない
+# 名前の下に、明朝体で大きめに出る一言（なくてもよい。「。」「. 」で改行される）。
+# 書くと、名前は小さな署名のような表示になる。例:
+#   catch:
+#     ja: 光を一枚ずつ、集めています。
+#     en: Collecting light, one frame at a time.
+
+# 自己紹介の本文。1 項目が 1 段落。下の表に書くことは、ここでは繰り返さない
 bio:
   ja:
-    - ふだんはソフトウェアをつくる仕事をしています。撮りためた写真と、これまでのことを、ここに少しずつ置いていきます。
+    - “東日本 限界旅行オタク”。年間1か月くらいはどこかに出かけています。
   en:
-    - By day I build software. This is where I keep the photographs I have taken, and a little of where I have been.
+    - A self-described “extreme-travel geek” of eastern Japan. I spend about a month of every year somewhere on the road.
 
-# 自己紹介の下の小さな表（なくてもよい）。一言・自己紹介に書いていないことだけを書く。例:
-#   - label: { ja: 拠点, en: Based in }
-#     value: { ja: 東京, en: Tokyo }
-facts: []
+# 本文の下の小さな表。label が見出し、value が中身（href を書くとリンクになる）
+facts:
+  - label: { ja: 仕事, en: Work }
+    value: { ja: エンジニア, en: Engineer }
+  - label: { ja: 生まれ, en: Born }
+    value: { ja: 1998年・新潟県長岡市, en: "1998, Nagaoka, Niigata" }
+  - label: { ja: 趣味, en: Hobbies }
+    value:
+      ja: 写真、旅（一人旅・電車・クルマ）、街歩き、カラオケ、お酒、スキー、洗車
+      en: Photography, travel (solo, by train and by car), city walks, karaoke, a good drink, skiing, washing my car
+  - label: { ja: 運動, en: Exercise }
+    value:
+      ja: ランニング、バドミントン、卓球（得意ではない）
+      en: Running, badminton, table tennis (not my strong suit)
 
 # SNS のアイコン（About とメニューに出る）。icon は x / instagram / github / facebook
 links:

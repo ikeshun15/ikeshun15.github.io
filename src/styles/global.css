@@ -930,6 +930,14 @@ main,
   color: var(--ink-2);
 }
 
+/* 一言がないときは、名前が自己紹介の見出しになる */
+.person__name--lead {
+  font-size: clamp(28px, 3vw, 40px);
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
 /* 一言：自己紹介の見出しとして、明朝体で大きめに（「。」ごとに改行） */
 .person__catch {
   margin-top: 14px;
@@ -958,9 +966,10 @@ main,
 .facts {
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: 8px 24px;
-  margin: 24px 0 0;
+  gap: 10px 24px;
+  margin: 28px 0 0;
   font-size: 14px;
+  line-height: 1.8;
 }
 
 .facts div {
@@ -973,6 +982,11 @@ main,
 
 .facts dd {
   margin: 0;
+}
+
+/* 日本語は文節の切れ目で折り返す（「スキー」が「スキ／ー」と切れないように） */
+:lang(ja) :is(.facts dd, .person__body) {
+  word-break: auto-phrase;
 }
 
 /* SNS のアイコン。ホバーで写真の色に */

@@ -1,6 +1,7 @@
 ---
 /**
  * About の中身：重なった写真と、自己紹介のまとまり（名前 → 一言 → 本文 → 小さな表 → SNS）。
+ * 一言（catch）がないときは、名前を自己紹介の見出しとして大きめに出す。
  * 文章は src/content/profile.yaml、重なった写真はトップに載せる写真の最初の 3 枚。
  */
 import { Image } from 'astro:assets';
@@ -30,8 +31,8 @@ const isExternal = (href: string) => /^https?:/.test(href);
     }
   </div>
   <div class="person__bio" data-field-calm>
-    <h3 class="person__name">{profile.name}</h3>
-    <p class="person__catch serif">{splitSentences(profile.catch[lang]).map((s) => <span>{s}</span>)}</p>
+    <h3 class:list={['person__name', { 'person__name--lead': !profile.catch }]}>{profile.name}</h3>
+    {profile.catch && <p class="person__catch serif">{splitSentences(profile.catch[lang]).map((s) => <span>{s}</span>)}</p>}
     <div class="person__body">{profile.bio[lang].map((p) => <p>{p}</p>)}</div>
     {
       profile.facts.length > 0 && (
